@@ -46,7 +46,7 @@ textarea{min-height:72px;resize:vertical}.col{display:grid;gap:7px}.row{display:
 .apps{position:absolute;left:50%;top:64px;transform:translateX(-50%);width:max-content;max-width:124px;text-align:center;pointer-events:none}.appTag{display:block;font-size:10px;line-height:1.18;background:#fff;border:1px solid var(--line);border-radius:7px;padding:2px 5px;white-space:pre-line;overflow-wrap:break-word;max-width:124px;text-align:center}
 .react{position:absolute;left:50%;top:-54px;transform:translateX(-50%);background:#fff;border:2px solid #ecd274;border-radius:999px;padding:3px 6px;font-size:16px;white-space:nowrap;z-index:5}
 .slot{width:68px;height:68px;border:2px dashed #ff7195aa;border-radius:18px;background:#ff719516;display:none;z-index:4000}.stage.drag .slot{display:block}.marquee{position:absolute;z-index:9998;border:2px solid #20a879;background:#20a87918;pointer-events:none}
-.noteObj{position:absolute;touch-action:none;cursor:grab;user-select:none}.noteObj.locked{cursor:not-allowed;opacity:.92}.noteObj.sel{outline:3px solid #4388ff}.noteObj.multiSel{outline:3px solid #20a879;box-shadow:0 0 0 3px #20a87922}.noteObj .noteResize{position:absolute;right:-8px;bottom:-8px;width:18px;height:18px;border-radius:50%;background:#4388ff;border:2px solid #fff;display:none;cursor:nwse-resize}.noteObj.sel .noteResize{display:block}.noteObj.rect{border:2px solid #655d69;background:#f4f1f6}.noteObj.circle{border:2px solid #655d69;background:#f4f1f6;border-radius:50%}.noteObj.triangle{background:transparent;overflow:visible}.noteObj.triangle .triShape{width:100%;height:100%;background:#f4f1f6;clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 0 0 #655d69)}.noteObj.qslot{background:transparent;border:0;overflow:visible}.noteObj.qslot .qslotWrap{position:absolute;inset:0;border-radius:24%;background:#d9d2e7;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}.noteObj.qslot .qslotDash{position:absolute;inset:8%;border-radius:20%;border:6px dashed #f7f5fb;box-sizing:border-box}.noteObj.qslot .qslotQs{position:absolute;inset:18% 14% 16%;display:flex;align-items:center;justify-content:center;gap:8%;font-weight:1000;color:#837892;line-height:1}.noteObj.qslot .qslotQs .big{font-size:60%}.noteObj.qslot .qslotQs .small{font-size:38%;transform:translateY(16%)}.noteObj.text{min-width:70px;min-height:28px;background:transparent;border:0}.noteText{width:100%;height:100%;white-space:pre-wrap;overflow:hidden;font-weight:700;line-height:1.2;color:#514953;padding:2px}.drawGhost{position:absolute;z-index:998;border:2px dashed #4388ff;background:#4388ff12;pointer-events:none}
+.noteObj{position:absolute;touch-action:none;cursor:grab;user-select:none}.noteObj.locked{cursor:not-allowed;opacity:.92}.noteObj.sel{outline:3px solid #4388ff}.noteObj.multiSel{outline:3px solid #20a879;box-shadow:0 0 0 3px #20a87922}.noteObj .noteResize{position:absolute;right:-8px;bottom:-8px;width:18px;height:18px;border-radius:50%;background:#4388ff;border:2px solid #fff;display:none;cursor:nwse-resize}.noteObj.sel .noteResize{display:block}.noteObj.rect{border:2px solid #655d69;background:#f4f1f6}.noteObj.circle{border:2px solid #655d69;background:#f4f1f6;border-radius:50%}.noteObj.triangle{background:transparent;overflow:visible}.noteObj.triangle .triShape{width:100%;height:100%;background:#f4f1f6;clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 0 0 #655d69)}.noteObj.qslot{background:transparent;border:0;overflow:visible}.noteObj.qslot .qslotWrap{position:absolute;inset:0;border-radius:24%;background:#d9d2e7;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}.noteObj.qslot .qslotDash{position:absolute;inset:8%;border-radius:20%;border:6px dashed #f7f5fb;box-sizing:border-box}.noteObj.qslot .qslotQs{position:absolute;inset:18% 14% 16%;display:flex;align-items:center;justify-content:center;gap:8%;font-weight:1000;color:#837892;line-height:1}.noteObj.qslot .qslotQs .big{font-size:1em}.noteObj.qslot .qslotQs .small{font-size:.58em;transform:translateY(16%)}.noteObj.text{min-width:70px;min-height:28px;background:transparent;border:0}.noteText{width:100%;height:100%;white-space:pre-wrap;overflow:hidden;font-weight:700;line-height:1.2;color:#514953;padding:2px}.drawGhost{position:absolute;z-index:998;border:2px dashed #4388ff;background:#4388ff12;pointer-events:none}
 
 .shapeLabel{
   position:absolute;inset:8%;
@@ -198,7 +198,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
   <label class="btn">MỞ PROJECT<input id="importFile" type="file" accept=".json" style="display:none"></label>
   <details class="topMenu" id="productionMenu"><summary class="btn">PRODUCTION</summary><div class="topMenuPanel">
     <button class="btn" id="endingBtn">ENDING</button>
-    <button class="btn" id="scenePngBtn">Scene PNG</button>
+    <button class="btn" id="scenePngBtn">Scene PNG · START + SOLVED (ZIP)</button>
     <button class="btn" id="assetRequestBtn">Asset Request XLSX</button>
     <button class="btn" id="exportBtn">Dev JSON</button>
   </div></details>
@@ -207,6 +207,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
     <button class="btn" id="sampleBirthdayBtn">Birthday Photo Booth · L003</button>
   </div></details>
   <details class="topMenu" id="moreMenu"><summary class="btn">⋯</summary><div class="topMenuPanel">
+    <button class="btn" id="saveAsBtn">LƯU THÀNH FILE MỚI</button>
     <button class="btn danger" id="resetBtn">Reset trắng</button>
   </div></details>
 </header>
@@ -290,7 +291,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 
 <div id="endingOverlay" class="endingOverlay">
   <div class="endingShell">
-    <div class="gtop"><b>ENDING</b><span class="small">Thiết kế popup kết màn + ảnh recap AI</span><div class="spacer"></div><button class="btn" id="closeEnding">Đóng</button></div>
+    <div class="gtop"><b>ENDING</b><span class="small">Mô tả ảnh recap + thiết kế popup kết màn</span><div class="spacer"></div><button class="btn" id="closeEnding">Đóng</button></div>
     <div class="endingBody">
       <div class="endingPreviewCol">
         <div class="endCardWrap">
@@ -316,10 +317,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
           <div class="row"><b style="font-size:13px">AI PROMPT</b><div class="spacer"></div><button class="btn" id="copyEndingPrompt">Copy AI Prompt</button></div>
           <div class="promptBox" id="endingPromptPreview"></div>
 
-          <label>🔵 Ending Image</label>
-          <div class="endingImageInput" id="endingImagePaste" tabindex="0">
-            <div><b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br><span class="small">hoặc Import PNG/JPG · khuyên dùng 4:3</span><div class="row" style="justify-content:center;margin-top:7px"><label class="btn">Import ảnh<input id="endingImageFile" type="file" accept="image/*" style="display:none"></label><button class="btn" id="exportEndingPng">Xuất Ending PNG</button><button class="btn danger" id="clearEndingImage">Xóa ảnh</button></div></div>
-          </div>
+          <div class="small">Ảnh Ending thực tế do Art làm theo mô tả. Tool không cần dán/import ảnh Ending.</div>
 
           <label>🔵 Ending Line<input id="endingLineInput" maxlength="100" placeholder="English · 6–12 words · recap + punchline"></label>
           <div class="endCounter" id="endingLineCounter"></div>
@@ -444,7 +442,7 @@ const VERDICT_SUGGESTIONS=[
   ["FORGIVE HER","tha thứ cô ta"]
 ];
 const ENDING_TITLE="DRAMA SOLVED!", ENDING_SKIP="LET IT GO", ENDING_REWARD_COINS=30, ENDING_NORMAL_COINS=15;
-function blankEnding(){return {imageBrief:"",endingLine:"",verdictCta:"",verdictMeaningVi:"",imageAssetId:"ENDING01",imageSrc:"",rewardCoins:ENDING_REWARD_COINS,normalRewardCoins:ENDING_NORMAL_COINS}}
+function blankEnding(){return {imageBrief:"",endingLine:"",verdictCta:"",verdictMeaningVi:"",imageAssetId:"ENDING01",rewardCoins:ENDING_REWARD_COINS,normalRewardCoins:ENDING_NORMAL_COINS}}
 function endingPrompt(brief){return `Create a clean, funny mobile-puzzle ending illustration in a simple anime/manhwa cartoon style.
 
 Aspect ratio: 4:3 horizontal.
@@ -727,7 +725,8 @@ function normalize(d){
   d.level.ending.verdictCta=String(d.level.ending.verdictCta||"").trim().toUpperCase();
   d.level.ending.verdictMeaningVi=String(d.level.ending.verdictMeaningVi||"");
   d.level.ending.imageAssetId=String(d.level.ending.imageAssetId||"ENDING01").trim().toUpperCase()||"ENDING01";
-  d.level.ending.imageSrc=String(d.level.ending.imageSrc||"");
+  // Bỏ hình Ending nhúng từ project cũ (brief + asset ID vẫn giữ).
+  delete d.level.ending.imageSrc;
   d.level.ending.rewardCoins=ENDING_REWARD_COINS;
   d.level.ending.normalRewardCoins=ENDING_NORMAL_COINS;
   d.level.art={...blankLevelArt(),...(d.level.art||{})};
@@ -1325,7 +1324,8 @@ function renderLive(){
       el.style.background=a.fill;el.style.borderColor=a.stroke;
       el.innerHTML=`<div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="qslot"){
-      el.innerHTML=`<div class="qslotWrap"></div><div class="qslotDash"></div><div class="qslotQs"><span class="small">?</span><span class="big">?</span><span class="small">?</span></div>${inEdit?'<div class="noteResize"></div>':''}`;
+      const qFont=Math.max(11,Math.round(Math.min(a.w,a.h)/1080*st.clientWidth*.42));
+      el.innerHTML=`<div class="qslotWrap"></div><div class="qslotDash"></div><div class="qslotQs" style="font-size:${qFont}px"><span class="small">?</span><span class="big">?</span><span class="small">?</span></div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="triangle"){
       el.innerHTML=`<div class="triShape" style="background:${a.fill}"></div><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="arrow"){
@@ -2846,7 +2846,7 @@ function renderEndingTab(){
   $("#endingPromptPreview").textContent=endingPrompt(e.imageBrief);
   $("#endingPreviewLine").textContent=resolveTokens(e.endingLine||"Ending line...",editNameMap());
   $("#endingPreviewCta").textContent=e.verdictCta||"VERDICT";
-  $("#endingPreviewImage").innerHTML=e.imageSrc?`<img src="${esc(e.imageSrc)}" alt="Ending preview">`:'<div class="endImagePlaceholder">ENDING IMAGE<br>4:3 HORIZONTAL</div>';
+  $("#endingPreviewImage").innerHTML='<div class="endImagePlaceholder">ENDING IMAGE<br>4:3 HORIZONTAL<br><small>Art sẽ bổ sung</small></div>';
   const wc=wordCount(e.endingLine),lc=$("#endingLineCounter");lc.textContent=e.endingLine?`${wc} từ · khuyên dùng 6–12 từ`:"";lc.classList.toggle("bad",!!e.endingLine&&(wc<6||wc>12));
   const vc=wordCount(e.verdictCta),vEl=$("#verdictCounter");vEl.textContent=e.verdictCta?`${vc} từ · tối đa 3 từ`:"";vEl.classList.toggle("bad",vc>3);
   $("#verdictSuggestions").innerHTML=VERDICT_SUGGESTIONS.map(([en,vi])=>`<button type="button" class="verdictOpt ${e.verdictCta===en?"sel":""}" data-verdict="${esc(en)}"><b>${esc(en)}</b><span>${esc(vi)}</span></button>`).join("");
@@ -2870,32 +2870,6 @@ $("#verdictCustom").oninput=e=>{
   renderLogic();
 };
 $("#copyEndingPrompt").onclick=async()=>{const txt=endingPrompt(data.level.ending.imageBrief);try{await navigator.clipboard.writeText(txt);toast("Đã copy AI Prompt")}catch(_){const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Đã copy AI Prompt")}};
-function setEndingImageFile(file){
-  if(!file||!file.type.startsWith("image/"))return;
-  const r=new FileReader();
-  r.onload=()=>{
-    data.level.ending.imageSrc=r.result;
-    const persisted=save();
-    renderEndingTab();
-    toast(persisted===false?"Đã gắn Ending Image · nhớ bấm Lưu project":"Đã gắn + lưu Ending Image vào project data");
-  };
-  r.onerror=()=>toast("Không đọc được Ending Image");
-  r.readAsDataURL(file);
-}
-$("#endingImageFile").onchange=e=>setEndingImageFile(e.target.files?.[0]);
-$("#endingImagePaste").addEventListener("paste",e=>{
-  const item=[...(e.clipboardData?.items||[])].find(x=>x.type?.startsWith("image/"));
-  if(!item)return;
-  e.preventDefault();
-  e.stopPropagation();
-  setEndingImageFile(item.getAsFile());
-});
-$("#clearEndingImage").onclick=()=>{data.level.ending.imageSrc="";save();renderEndingTab()};
-async function exportEndingPng(){
-  const e=data.level.ending;if(!e.imageSrc){toast("Chưa có Ending Image");return}const blob=await (await fetch(e.imageSrc)).blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${e.imageAssetId||"ENDING01"}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Đã xuất Ending PNG");
-}
-$("#exportEndingPng").onclick=exportEndingPng;
-
 function safeBaseName(s){return String(s||"level").trim().replace(/[^A-Za-z0-9_-]+/g,"_").replace(/^_+|_+$/g,"")||"level"}
 function csvCell(v){const s=String(v??"");return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
 function runtimeInitialAssetId(c){
@@ -3105,7 +3079,6 @@ function runPreflightCheck(includeProduction=false){
     if(missingFromArt.length)addErr("ASSET_CONTRACT_DEV_TO_ART",`Dev JSON gọi asset chưa có trong Asset Request: ${missingFromArt.join(", ")}.`);
     if(unusedByRuntime.length)addErr("ASSET_CONTRACT_ART_TO_DEV",`Asset Request có asset mà Dev JSON không dùng: ${unusedByRuntime.join(", ")}.`);
     const endErrors=validateEndingData();endErrors.forEach(x=>addErr("ENDING",`Ending: ${x}.`));
-    if(!String(data.level.ending?.imageSrc||"").trim())addWarn("ENDING_IMAGE","Chưa gắn Ending Image. Dev JSON vẫn reference Ending Asset ID, cần file ảnh thật khi handoff.");
     if(!String(data.level.art?.backgroundDescription||"").trim())addWarn("BG_DESC","Mô tả background đang trống.");
   }
 
@@ -3139,9 +3112,9 @@ function xlsxCell(v,row,col,style=0){
   if(typeof v==="number"&&Number.isFinite(v))return `<c r="${ref}"${style?` s="${style}"`:""}><v>${v}</v></c>`;
   return `<c r="${ref}" t="inlineStr"${style?` s="${style}"`:""}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
 }
-function makeXlsxSheet(rows,widths=[],merges=[]){
+function makeXlsxSheet(rows,widths=[],merges=[],boldRows=[]){
   const cols=widths.length?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";
-  const sheetRows=rows.map((row,ri)=>`<row r="${ri+1}"${ri===0?' ht="24" customHeight="1"':''}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,ri===0?1:0)).join("")}</row>`).join("");
+  const sheetRows=rows.map((row,ri)=>`<row r="${ri+1}"${ri===0?' ht="24" customHeight="1"':''}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,(ri===0||boldRows.includes(ri+1))?1:0)).join("")}</row>`).join("");
   const mergeXml=merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join("")}</mergeCells>`:"";
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"/></sheetViews>${cols}<sheetData>${sheetRows}</sheetData>${mergeXml}</worksheet>`;
 }
@@ -3170,109 +3143,179 @@ function exportAssetRequest(){
   if(v.missing||v.dups.length){toast(`Asset ID lỗi: ${v.missing?"thiếu "+v.missing:""}${v.dups.length?" · trùng "+v.dups.join(", "):""}`);return}
   const headers=["Asset ID","File","Group","Character","Gender","Age","State","Emoji","Tên biểu cảm","Symbol","Target","Gaze Clock","Description / Appearance","Artist Note","Tone màu","Export Mode","Reference"];
   const assetRows=[headers,...resolvedAssetRows().map(r=>[r.assetId,r.file,r.group,r.character,r.gender,r.age,r.state,r.expressionEmoji,r.expressionName,r.symbol,r.target,r.gaze,r.description,r.artistNote,r.tone,r.exportMode,r.reference])];
-  const base=safeBaseName(data.level.id||"DRAMA_LEVEL"),sceneFile=`${base}_SCENE_LAYOUT.png`;
-  const endingFile=`${data.level.ending?.imageAssetId||"ENDING01"}.png`;
+  const base=safeBaseName(data.level.id||"DRAMA_LEVEL");
+  // Tab 2 là khung DÁN ẢNH dành cho GD, không tự nhúng ảnh và không chứa thông tin Ending.
+  // Các ô B15/C15 trở xuống để trống hoàn toàn cho GD dán Scene START + SOLVED cạnh nhau.
   const sceneRows=[
-    ["SCENE LAYOUT + ENDING IMAGE"],
-    ["GD: Dán cả 2 ảnh vào tab này trước khi gửi Asset Request cho Artist: (1) Scene Layout PNG và (2) Ending Image PNG."],
+    ["SCENE — START + SOLVED"],
+    ["GD xuất Scene PNG (ZIP) ở Tool và DÁN 2 ẢNH vào tab này trước khi gửi Asset Request cho Art."],
     [""],
     ["Level ID",data.level.id||""],
     ["Version",data.level.version||"1.0"],
     ["Folder asset",data.level.id||""],
-    ["SCENE LAYOUT — File cần dán",sceneFile],
-    ["Kích thước chuẩn","1080 × 1610"],
-    ["Ghi chú","Ảnh Scene Layout để Artist nhìn đúng bố cục, vị trí nhân vật, object, foreground và các note trên scene."],
+    ["Kích thước", "1080 × 1610 / ảnh"],
+    ["START", "Chỉ Fixed + background/ảnh/shape được bật Hiện trong Play, gồm cả slot ? nếu có."],
+    ["SOLVED", "Tất cả Fixed + Movable đúng chỗ; chỉ thể hiện bố cục, reaction cuối có thể phụ thuộc thứ tự chơi."],
+    [""], [""], [""], [""], [""],
+    ["", "DÁN ẢNH SCENE START VÀO DƯỚI NÀY", "DÁN ẢNH SCENE SOLVED VÀO DƯỚI NÀY"],
     [""],
-    ["DÁN ẢNH SCENE LAYOUT PNG VÀO KHU VỰC BÊN DƯỚI"],
-    [""],
-    [""],
-    [""],
-    ["ENDING IMAGE"],
-    ["GD: Dán ảnh ending đã gen/import trong tab ENDING vào đây để Artist/Dev nhìn đúng hình recap cuối màn."],
-    ["ENDING — File cần dán",endingFile],
-    ["Tỷ lệ chuẩn","4:3 ngang"],
-    ["Ghi chú","Ảnh recap drama cuối màn. Đây là ảnh dùng trong popup DRAMA SOLVED!, không phải ảnh Scene Layout."],
-    [""],
-    ["DÁN ENDING IMAGE PNG VÀO KHU VỰC BÊN DƯỚI"]
+    ...Array.from({length:33},()=>["", "", ""])
   ];
   const files={
     "[Content_Types].xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`,
     "_rels/.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
-    "xl/workbook.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ASSET REQUEST" sheetId="1" r:id="rId1"/><sheet name="SCENE + ENDING" sheetId="2" r:id="rId2"/></sheets></workbook>`,
+    "xl/workbook.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ASSET REQUEST" sheetId="1" r:id="rId1"/><sheet name="SCENE START + SOLVED" sheetId="2" r:id="rId2"/></sheets></workbook>`,
     "xl/_rels/workbook.xml.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
     "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
     "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,12,34,34,22,18,34]),
-    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,84],["A1:B1","A2:B2","A11:B11","A15:B15","A16:B16","A21:B21"])
+    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9"],[15])
   };
   const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${base}_ASSET_REQUEST.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast("Đã xuất Asset Request XLSX · tab 2 có Scene Layout + Ending Image");
+  toast("Đã xuất Asset Request · nhớ gửi 2 Scene PNG");
 }
 function loadCanvasImage(src){return new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>resolve(null);im.src=src})}
 function canvasText(ctx,text,x,y,maxWidth,lineHeight){
   const words=String(text||"").split(/\s+/);let line="",yy=y;
   words.forEach(w=>{const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxWidth&&line){ctx.fillText(line,x,yy);line=w;yy+=lineHeight}else line=t});if(line)ctx.fillText(line,x,yy);return yy;
 }
-async function exportScenePng(){
-  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1610;const ctx=canvas.getContext("2d");ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+function canvasRoundedPath(ctx,x,y,w,h,r){
+  const radius=Math.max(0,Math.min(r,w/2,h/2));
+  ctx.beginPath();ctx.moveTo(x+radius,y);ctx.lineTo(x+w-radius,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+radius);ctx.lineTo(x+w,y+h-radius);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);ctx.lineTo(x+radius,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-radius);ctx.lineTo(x,y+radius);
+  ctx.quadraticCurveTo(x,y,x+radius,y);ctx.closePath();
+}
+function drawQslotPng(ctx,o){
+  const {x,y,w,h}=o;
+  ctx.save();
+  canvasRoundedPath(ctx,x,y,w,h,Math.min(w,h)*.24);
+  ctx.fillStyle="#d9d2e7";ctx.fill();
+  const pad=Math.min(w,h)*.08;
+  canvasRoundedPath(ctx,x+pad,y+pad,w-2*pad,h-2*pad,Math.min(w,h)*.18);
+  ctx.setLineDash([Math.max(4,Math.min(w,h)*.115),Math.max(3,Math.min(w,h)*.058)]);
+  ctx.lineWidth=Math.max(2,Math.min(w,h)*.055);
+  ctx.strokeStyle="#f7f5fb";ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#837892";ctx.textAlign="center";ctx.textBaseline="middle";
+  const sz=Math.min(w,h);
+  ctx.font=`900 ${Math.max(12,sz*.42)}px Arial`;ctx.fillText("?",x+w*.5,y+h*.53);
+  ctx.font=`900 ${Math.max(8,sz*.25)}px Arial`;
+  ctx.fillText("?",x+w*.27,y+h*.60);ctx.fillText("?",x+w*.73,y+h*.60);
+  ctx.restore();
+}
+function drawSceneCharPng(ctx,c){
+  ctx.save();
+  ctx.beginPath();ctx.fillStyle="#fff";ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";
+  ctx.lineWidth=6;ctx.arc(c.x,c.y,30,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle="#342f3a";ctx.font="900 21px Arial";ctx.textAlign="center";
+  ctx.fillText(c.id,c.x,c.y+7);
+  ctx.font="700 19px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
+  ctx.restore();
+}
+async function buildSceneCanvas(state){
+  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1610;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
   const layers=sceneLayerItems().sort((a,b)=>(Number(a.obj.z)||0)-(Number(b.obj.z)||0));
   for(const layer of layers){
     const o=layer.obj;
     if(layer.type==="image"){
       const im=await loadCanvasImage(o.src);if(im)ctx.drawImage(im,o.x,o.y,o.w,o.h);
     }else{
+      // PNG là scene player thấy, không phải ghi chú nội bộ chỉ có ở EDIT.
+      if(!o.visibleInPlay)continue;
       ctx.save();ctx.lineWidth=o.strokeWidth||4;ctx.strokeStyle=o.stroke||"#655d69";ctx.fillStyle=o.fill||"#f4f1f6";
-      if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
+      if(o.type==="qslot")drawQslotPng(ctx,o);
+      else if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
       else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
-      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.lineTo(o.x,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}
-      else if(o.type==="arrow"){const x1=o.x+(o.arrowXDir===1?0:o.w),x2=o.x+(o.arrowXDir===1?o.w:0),y1=o.y+(o.arrowYDir===1?0:o.h),y2=o.y+(o.arrowYDir===1?o.h:0);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill()}
-      if(o.text){ctx.fillStyle=o.textColor||"#514953";ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15)}
+      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}
+      else if(o.type==="arrow"){
+        const x1=o.x+(o.arrowXDir===1?0:o.w),x2=o.x+(o.arrowXDir===1?o.w:0),y1=o.y+(o.arrowYDir===1?0:o.h),y2=o.y+(o.arrowYDir===1?o.h:0);
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);
+        ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill();
+      }
+      if(o.type!=="qslot"&&o.text){
+        ctx.fillStyle=o.type==="text"?(o.stroke||"#514953"):(o.textColor||"#514953");
+        ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";
+        canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15);
+      }
       ctx.restore();
     }
   }
-  sortedCharacters().forEach(c=>{
-    ctx.save();ctx.beginPath();ctx.fillStyle="#fff";ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";ctx.lineWidth=6;ctx.arc(c.x,c.y,30,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.fillStyle="#342f3a";ctx.font="900 24px Arial";ctx.textAlign="center";ctx.fillText(c.id,c.x,c.y+8);ctx.font="700 20px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
-    ctx.restore();
-  });
-  canvas.toBlob(blob=>{if(!blob){toast("Không xuất được Scene PNG");return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${safeBaseName(data.level.id||"DRAMA_LEVEL")}_SCENE_LAYOUT.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Đã xuất Scene PNG")},"image/png");
+  sortedCharacters().filter(c=>state==="SOLVED"||c.type==="F").forEach(c=>drawSceneCharPng(ctx,c));
+  return canvas;
+}
+function canvasAsPngBytes(canvas){
+  return new Promise((resolve,reject)=>canvas.toBlob(async blob=>{
+    if(!blob)return reject(Error("Không thể tạo PNG"));
+    try{resolve(new Uint8Array(await blob.arrayBuffer()))}catch(e){reject(e)}
+  },"image/png"));
+}
+async function exportScenePng(){
+  try{
+    const base=safeBaseName(data.level.id||"DRAMA_LEVEL");
+    const startCanvas=await buildSceneCanvas("START");
+    const solvedCanvas=await buildSceneCanvas("SOLVED");
+    const files={
+      [`${base}_SCENE_START.png`]:await canvasAsPngBytes(startCanvas),
+      [`${base}_SCENE_SOLVED.png`]:await canvasAsPngBytes(solvedCanvas)
+    };
+    const blob=new Blob([zipStore(files)],{type:"application/zip"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=`${base}_SCENE_START_SOLVED.zip`;a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast("Đã xuất ZIP · Scene START + SOLVED");
+  }catch(e){console.error(e);toast("Không xuất được Scene PNG · kiểm tra ảnh/layer")}
 }
 
-async function saveProjectFile(){
+function projectSaveIdentity(){
+  return `${String(data.level.id||"").trim()}|${String(data.level.version||"1.0").trim()}`;
+}
+function detachProjectFile(){projectFileHandle=null;lastSavedProjectIdentity=null;}
+let lastSavedProjectIdentity=null;
+async function saveProjectFile(forceNew=false){
   save();
   savePlayProgress();
-  const editorData=deep(data);editorData.editorSchemaVersion="1.30";
+  const editorData=deep(data);editorData.editorSchemaVersion="1.31";
   const json=JSON.stringify(editorData,null,2);
   const idPart=(data.level.id||"drama_level").replace(/[^\w\-]+/g,"_");
   const filename=`${idPart}_v${String(data.level.version||"1.0").replace(/[^\w.\-]+/g,"_")}.editor.json`;
+  const identity=projectSaveIdentity();
+  if(lastSavedProjectIdentity!==identity)detachProjectFile();
 
-  try{
-    if("showSaveFilePicker" in window){
-      if(!projectFileHandle){
-        projectFileHandle=await window.showSaveFilePicker({
-          suggestedName:filename,
-          types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
-        });
-      }
-      const writable=await projectFileHandle.createWritable();
+  if("showSaveFilePicker" in window){
+    try{
+      // Chỉ chọn handle mới khi cần. Cancel không ghi đè và không tạo download.
+      const handle=(!forceNew&&projectFileHandle)?projectFileHandle:await window.showSaveFilePicker({
+        suggestedName:filename,
+        types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
+      });
+      const writable=await handle.createWritable();
       await writable.write(json);
       await writable.close();
-      toast("Đã lưu project");
+      projectFileHandle=handle;
+      lastSavedProjectIdentity=identity;
+      toast(forceNew?"Đã lưu thành file mới":"Đã lưu Project");
       return;
+    }catch(e){
+      if(e?.name==="AbortError")return;
+      // Nếu trình duyệt không cho ghi file: tải JSON mới, không được ghi đè file cũ.
+      console.warn("Save Project failed; downloading JSON instead",e);
     }
-  }catch(e){
-    if(e?.name==="AbortError")return;
   }
-
   const blob=new Blob([json],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download=filename;
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast("Đã lưu project thành JSON");
+  // Trình duyệt không hỗ trợ handle: lần sau tiếp tục tải JSON, không ghi đè file nào.
+  detachProjectFile();
+  toast("Đã tải Project JSON mới");
 }
-$("#saveBtn").onclick=saveProjectFile;
+$("#saveBtn").onclick=()=>saveProjectFile(false);
+$("#saveAsBtn").onclick=()=>saveProjectFile(true);
 $("#exportBtn").onclick=()=>{
   const check=runPreflightCheck(true);
   if(check.errors.length){renderPreflightCheck(check);$("#checkOverlay").classList.add("show");toast(`CHECK LEVEL: còn ${check.errors.length} lỗi phải sửa`);return}
@@ -3286,7 +3329,6 @@ $("#scenePngBtn").onclick=exportScenePng;
 $("#importFile").onchange=e=>{
   const f=e.target.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{try{
-    playSession++;clearPlayProgress();
     const raw=JSON.parse(r.result);
     // Runtime JSON chỉ chứa dữ liệu Dev. Khi import lại Tool, khôi phục phần runtime có thể khôi phục;
     // dữ liệu Art/authoring đã chủ động bỏ khỏi Dev JSON sẽ không thể tự sinh lại.
@@ -3315,25 +3357,25 @@ $("#importFile").onchange=e=>{
         endingLine:raw.ending.endingLine??raw.level.ending?.endingLine??"",
         verdictCta:raw.ending.verdictCta??raw.level.ending?.verdictCta??"",
         imageAssetId:raw.ending.imageAssetId??raw.level.ending?.imageAssetId??"ENDING01",
-        imageSrc:raw.ending.imageSrc??raw.level.ending?.imageSrc??"",
         rewardCoins:ENDING_REWARD_COINS,normalRewardCoins:ENDING_NORMAL_COINS
       };
     }
-    data=normalize(raw);selected={type:"level",id:"level"};mode="edit";lastSnapshot=JSON.stringify(data);persistRaw();refreshImmediate();toast("Đã nhập JSON"+(data.level.ending?.imageSrc?" · có Ending Image":""));
+    playSession++;clearPlayProgress();detachProjectFile();
+    data=normalize(raw);selected={type:"level",id:"level"};mode="edit";multiSel.clear();lastSnapshot=JSON.stringify(data);persistRaw();refreshImmediate();toast("Đã mở Project");
   }catch(_){toast("JSON lỗi")}};
   r.readAsText(f);
 };
 
 // SAMPLE: giữ riêng các level mẫu để GD mở nhanh khi train / tham khảo.
 function loadSampleProject(sampleData,message){
-  playSession++;clearPlayProgress();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
+  playSession++;clearPlayProgress();detachProjectFile();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
 }
 $("#checkLevelBtn").onclick=openPreflightCheck;
 $("#closeCheckLevel").onclick=()=>$("#checkOverlay").classList.remove("show");
 $("#checkOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#checkOverlay"))$("#checkOverlay").classList.remove("show")});
 $("#sampleWeddingBtn").onclick=()=>loadSampleProject(sample(),"Đã load Sample Wedding · L001");
 $("#sampleBirthdayBtn").onclick=()=>loadSampleProject(sampleBirthday(),"Đã load Sample Birthday Photo Booth · L003");
-$("#resetBtn").onclick=()=>{if(!confirm("Reset trắng toàn bộ level hiện tại?"))return;playSession++;clearPlayProgress();data=normalize(blank());selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast("Đã reset trắng hoàn toàn")};
+$("#resetBtn").onclick=()=>{if(!confirm("Reset trắng toàn bộ level hiện tại?"))return;playSession++;clearPlayProgress();detachProjectFile();data=normalize(blank());selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast("Đã reset trắng hoàn toàn")};
 
 $("#overlay").addEventListener("pointerdown",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("show")});
 $("#endingOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#endingOverlay"))$("#endingOverlay").classList.remove("show")});
@@ -3342,7 +3384,7 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classLi
 
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});
-["resetBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
+["resetBtn","saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
 play=loadPlayProgress();
 render();
 })();
