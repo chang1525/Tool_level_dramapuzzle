@@ -463,6 +463,57 @@ No text, no speech bubbles, no UI.
 Keep the background simple and only support the main drama moment.`}
 
 
+// Nhóm tuổi dành cho production Art; giá trị mã ổn định, nhãn hiển thị dễ hiểu.
+const AGE_GROUPS=[
+  ["", "Chưa xác định / không áp dụng"],
+  ["BABY", "Em bé (0–2 tuổi)"],
+  ["TODDLER", "Trẻ nhỏ (3–5 tuổi)"],
+  ["CHILD", "Trẻ em (6–12 tuổi)"],
+  ["TEEN", "Thiếu niên / thiếu nữ (13–17 tuổi)"],
+  ["YOUNG_ADULT", "Thanh niên (18–29 tuổi)"],
+  ["ADULT", "Trưởng thành (30–44 tuổi)"],
+  ["MIDDLE_AGED", "Trung niên (45–59 tuổi)"],
+  ["SENIOR", "Cao tuổi (60–79 tuổi)"],
+  ["VERY_OLD", "Rất cao tuổi (80+ tuổi)"],
+];
+function normalizeAgeGroup(value){
+  const s=String(value??"").trim();
+  if(!s)return "";
+  if(AGE_GROUPS.some(([id])=>id===s))return s;
+  const match=s.match(/^(\d{1,3})(?:\s*(?:tuổi|years?|yo|y\/o))?$/i);
+  if(match){
+    const n=Number(match[1]);
+    if(n<=2)return "BABY";
+    if(n<=5)return "TODDLER";
+    if(n<=12)return "CHILD";
+    if(n<=17)return "TEEN";
+    if(n<=29)return "YOUNG_ADULT";
+    if(n<=44)return "ADULT";
+    if(n<=59)return "MIDDLE_AGED";
+    if(n<=79)return "SENIOR";
+    return "VERY_OLD";
+  }
+  // Tự nhận diện một số nhãn tuổi đã dùng trong sample/project cũ.
+  if(/trung niên/i.test(s))return "MIDDLE_AGED";
+  if(/thiếu niên|thiếu nữ|teen/i.test(s))return "TEEN";
+  if(/thanh niên/i.test(s))return "YOUNG_ADULT";
+  if(/trưởng thành/i.test(s))return "ADULT";
+  if(/rất cao tuổi|rất già/i.test(s))return "VERY_OLD";
+  if(/cao tuổi|người già|lớn tuổi/i.test(s))return "SENIOR";
+  if(/trẻ con|trẻ em/i.test(s))return "CHILD";
+  return s; // Không đoán với mô tả tuổi cũ chưa rõ nghĩa.
+}
+function ageGroupLabel(value){
+  const k=String(value??"");
+  return (AGE_GROUPS.find(([id])=>id===k)||[k,k])[1];
+}
+function ageGroupOptions(current){
+  const v=String(current??"");
+  const extra=v&&!AGE_GROUPS.some(([id])=>id===v)
+    ? `<option value="${esc(v)}">Dữ liệu cũ: ${esc(v)} — chọn nhóm để cập nhật</option>` : "";
+  return AGE_GROUPS.map(([id,label])=>`<option value="${id}">${esc(label)}</option>`).join("")+extra;
+}
+
 const NAME_POOLS={
   MALE:[
     "Adam","Aiden","Alan","Alex","Asher","Blake","Brian","Caleb","Carl","Cole",
@@ -485,7 +536,7 @@ const NAME_POOLS={
   NEUTRAL:[
     "Alex","Avery","Blair","Casey","Kai","Lane","Logan","Quinn","Reese","Riley",
     "River","Robin","Rowan","Sage","Sam","Wren","Drew","Ellis","Jules","Kit",
-    "Lake","Micah","Noel","Remy","Rory","Terry"
+    "Lake","Micah","Noel","Remy","Rory","Terry", "Coco","Mochi","Miso","Lucky","Momo","Boba","Cookie","Pudding"
   ]
 };
 
@@ -540,8 +591,8 @@ function buildPlayNameMap(randomize,avoidMap=null){
   const map={},used=new Set();
   sortedCharacters().forEach(c=>{
     let name=c.name||c.id;
-    if(randomize&&c.namePool&&c.namePool!=="KEEP"){
-      const picked=pickUniqueName(c.namePool,used,avoidMap?.[c.id]||"");
+    if(randomize){
+      const picked=pickUniqueName(inferGender(c),used,avoidMap?.[c.id]||"");
       if(picked)name=picked;
     }
     if(used.has(name)){
@@ -607,10 +658,10 @@ function normalizeGazeValue(g){
   return n>=1&&n<=12?String(n):"NONE";
 }
 function inferGender(c){
-  if(c.gender)return c.gender;
-  if(c.namePool==="MALE")return "MALE";
-  if(c.namePool==="FEMALE")return "FEMALE";
-  return "UNSPECIFIED";
+  if(["MALE","FEMALE","NEUTRAL"].includes(c.gender))return c.gender;
+  if(c.gender==="OTHER")return "NEUTRAL"; // Dự án cũ: Khác → Neutral
+  if(["MALE","FEMALE","NEUTRAL"].includes(c.namePool))return c.namePool;
+  return "NEUTRAL"; // Chưa chọn/không phân biệt, kể cả thú cưng hay nhân vật đặc biệt
 }
 function nextReactionAssetId(c){
   let max=0;
@@ -622,7 +673,8 @@ function nextReactionAssetId(c){
 }
 function ensureCharacterAssetIds(c){
   c.gender=inferGender(c);
-  c.age=c.age||"";
+  c.namePool=c.gender; // Một nguồn sự thật: giới tính quyết định kho tên.
+  c.age=normalizeAgeGroup(c.age);
   c.artistNote=c.artistNote||"";
   c.baseExpression=normalizeEmotionEmoji(c.baseExpression||"😐");
   if(c.type==="M"){
@@ -749,9 +801,10 @@ function normalize(d){
     c.answerSet=true;
     c.appearance=c.appearance||[];
     delete c.sceneTag; // Scene Tag system removed in V1.15
-    c.namePool=c.namePool||"KEEP";
     c.gender=inferGender(c);
-    c.age=c.age||"";
+    c.namePool=c.gender; // Xóa trạng thái KEEP của file cũ; tên tạm gốc vẫn giữ trong Edit.
+    delete c.genderManual;
+    c.age=normalizeAgeGroup(c.age);
     c.artistNote=c.artistNote||"";
     c.baseExpression=normalizeEmotionEmoji(c.baseExpression||"😐");
     c.baseGaze=normalizeGazeValue(c.baseGaze||"NONE");
@@ -1697,9 +1750,11 @@ function charIns(b,c){
   b.innerHTML=`<div class="group col">
     <label>🟢 Mã<input id="ci" value="${c.id}"></label>
     <label>🟢 Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
-    <label>🟡 Kho tên khi Random
-      <select id="cpool"><option value="KEEP">Giữ nguyên tên này</option><option value="MALE">Kho tên Nam</option><option value="FEMALE">Kho tên Nữ</option><option value="NEUTRAL">Kho tên Neutral</option></select>
+    <label>🟢 Giới tính / Kho tên Random
+      <select id="cgender"><option value="MALE">Nam · Kho tên Nam</option><option value="FEMALE">Nữ · Kho tên Nữ</option><option value="NEUTRAL">Neutral · Kho tên chung / thú cưng</option></select>
     </label>
+    <label>🟢 Nhóm độ tuổi<select id="cage">${ageGroupOptions(c.age)}</select></label>
+    <div class="small">Khi dùng <b>Chơi lại + Đảo tên</b>, tất cả nhân vật sẽ được đổi tên theo giới tính đã chọn. <b>Tên gốc</b> vẫn là tên tạm trong Edit. Neutral dùng được cho chó, mèo hoặc nhân vật không phân biệt giới tính.</div>
     <label>🟢 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
     <label>🟢 Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
     <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
@@ -1713,7 +1768,6 @@ function charIns(b,c){
   <div class="group"><div class="head" style="margin:0 0 4px"><b>RELATED · AUTO</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Chỉ để soi nhanh; Tool tự đọc dữ liệu đã có, GD không phải khai thêm.</div><div class="relSection"><small>Clue nhắc Character này</small>${incomingHtml}</div><div class="relSection"><small>Khi placement ${esc(c.id)} tham gia trigger</small>${outgoingHtml}</div></div>
 
   <details class="group prodDetails"><summary>PRODUCTION · CHARACTER ART</summary><div class="prodDetailsBody col">
-    <div class="row"><label style="flex:1">Giới tính<select id="cgender"><option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label><label style="flex:1">Độ tuổi<input id="cage" value="${esc(c.age||"")}" placeholder="VD: 8 tuổi / 20-25 / trung niên"></label></div>
     ${c.type==="M"?`<label>Tray / Scene ban đầu Asset ID<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label><div class="small">Chỉ cần một asset TRAY: dùng cả khi M đặt đúng nhưng chưa Reaction hoặc khi về biểu cảm ban đầu.</div>`:`<label>Base Asset ID<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>`}
     <label>Note riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
     <div class="assetBox">${visualRows||'<span class="assetMuted">Chưa có asset state.</span>'}</div>
@@ -1722,14 +1776,18 @@ function charIns(b,c){
   <div class="group"><div class="head" style="margin:0 0 6px"><b>Reaction Events</b><button class="btn" id="addEvent">+ Reaction</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>EVENT ${i+1} · ${ev.steps.length} step</b><div class="meta">WHEN: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có reaction.</div>'}</div></div>
   <button class="btn danger" id="cd">Xóa character</button>`;
 
-  $("#ct").value=c.type;$("#cpool").value=c.namePool||"KEEP";$("#cgender").value=c.gender||"UNSPECIFIED";
+  $("#ct").value=c.type;$("#cgender").value=inferGender(c);$("#cage").value=String(c.age??"");
   $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast("Movable chỉ dùng mã Mxx, Fixed chỉ dùng mã Fxx");e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
   $("#cn").oninput=e=>{c.name=e.target.value;save();$$(`[data-char-name="${c.id}"]`).forEach(n=>n.textContent=e.target.value)};$("#cn").onchange=()=>{renderLists();renderClues();renderLive()};
-  $("#cpool").onchange=e=>{c.namePool=e.target.value;if(c.gender==="UNSPECIFIED")c.gender=inferGender({...c,gender:""});save();renderInspector()};
+  $("#cgender").onchange=e=>{
+    c.gender=e.target.value;
+    c.namePool=c.gender;
+    save();renderInspector();
+  };
   $("#cr").oninput=e=>{c.role=e.target.value;save()};$("#cr").onchange=()=>renderLists();
   $("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Movable":"Fixed"}${result.triggerReview?` · ${result.triggerReview} Reaction cần chọn lại trigger`:""}`)};
   $("#ca").oninput=e=>{c.appearance=e.target.value.split("\n").map(x=>x.trim()).filter(Boolean);save()};$("#ca").onchange=()=>renderLive();
-  $("#cgender").onchange=e=>{c.gender=e.target.value;save()};$("#cage").oninput=e=>{c.age=e.target.value;save()};
+  $("#cage").onchange=e=>{c.age=e.target.value;save()};
   if($("#cbaseasset"))$("#cbaseasset").onchange=e=>{c.assetBaseId=e.target.value.trim().toUpperCase();save();renderInspector()};
   if($("#ctrayasset"))$("#ctrayasset").onchange=e=>{c.assetTrayId=e.target.value.trim().toUpperCase();save();renderInspector()};
   $("#cbaseexp").onchange=e=>{c.baseExpression=normalizeEmotionEmoji(e.target.value);save();renderInspector();renderLive()};$("#cbasegaze").onchange=e=>{c.baseGaze=normalizeGazeValue(e.target.value);save();renderInspector();renderLive();renderLogic()};$("#cbasetarget").onchange=e=>{c.baseTarget=e.target.value;save();renderInspector();renderLive();renderLogic()};
@@ -2087,7 +2145,7 @@ function addChar(t){
     id,name:"",role:"",type:t,answerSet:true,
     x:170+(n%5)*180,
     y:240+Math.floor(n/5)*155,
-    namePool:"KEEP",appearance:[],gender:"UNSPECIFIED",age:"",artistNote:"",baseExpression:"😐",baseGaze:"NONE",baseTarget:"",...(t==="M"?{assetTrayId:`${id}_TRAY`}:{assetBaseId:`${id}_BASE`}),reactionEvents:[]
+    namePool:"NEUTRAL",appearance:[],gender:"NEUTRAL",age:"",artistNote:"",baseExpression:"😐",baseGaze:"NONE",baseTarget:"",...(t==="M"?{assetTrayId:`${id}_TRAY`}:{assetBaseId:`${id}_BASE`}),reactionEvents:[]
   };
   data.characters.push(c);
   ensureCharacterAssetIds(c);
@@ -2893,9 +2951,9 @@ function resolvedAssetRows(){
     const initial=initialStateRecord(c);
     const initialGaze=resolvedGazeClock(c.id,initial)?`${resolvedGazeClock(c.id,initial)} giờ`:"";
     const initialAssetId=runtimeInitialAssetId(c);
-    rows.push({assetId:initialAssetId,file:`Characters/${c.id}/${initialAssetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:c.type==="M"?"TRAY + SCENE INITIAL":"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
+    rows.push({assetId:initialAssetId,file:`Characters/${c.id}/${initialAssetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:c.type==="M"?"TRAY + SCENE INITIAL":"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
 
-    (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
+    (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
   });
   const ending=data.level.ending||blankEnding();
   rows.push({assetId:ending.imageAssetId||"ENDING01",file:`Ending/${ending.imageAssetId||"ENDING01"}.png`,group:"ENDING",character:"",gender:"",age:"",state:"ENDING",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:ending.imageBrief||"",artistNote:"",tone:"",exportMode:"ENDING 4:3",reference:""});
@@ -2927,8 +2985,7 @@ function buildRuntimeData(){
     return {
       id:c.id,
       type:c.type==="M"?"MOVABLE":"FIXED",
-      namePool:c.namePool||"KEEP",
-      ...((c.namePool||"KEEP")==="KEEP"?{fixedName:c.name||c.id}:{}),
+      namePool:inferGender(c),
       ...(c.type==="M"?{correctPosition:{x:roundPos(c.x),y:roundPos(c.y)}}:{position:{x:roundPos(c.x),y:roundPos(c.y)}}),
       assets:{initial:initialAssetId},
       ...(events.length?{reactionEvents:events}:{})
@@ -3048,7 +3105,7 @@ function runPreflightCheck(includeProduction=false){
   [data.level.hook,data.level.reveal].forEach(txt=>clueTokenIds(txt||"").forEach(id=>{if(!charIds.has(id))addErr("TOKEN_REF",`Token {${id}} đang được dùng nhưng Character ID không tồn tại.`)}));
 
   // Player-facing text phải dùng token nếu character có random name pool.
-  const randomNamed=sortedCharacters().filter(c=>(c.namePool||"KEEP")!=="KEEP"&&String(c.name||"").trim());
+  const randomNamed=sortedCharacters().filter(c=>String(c.name||"").trim());
   const textFields=[
     ["Drama Hook",data.level.hook||""],["Drama Reveal",data.level.reveal||""],["Ending Text",data.level.ending?.endingLine||""],
     ...(data.clues||[]).map(cl=>[`Clue ${cl.id}`,cl.text||""])
