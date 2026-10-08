@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SẮP XẾP DRAMA — Live Level Editor V1.30 · Reaction & Asset Update</title>
+<title>SẮP XẾP DRAMA — Live Level Editor V1.31 · Reaction & Asset Update</title>
 <style>
 :root{
   --bg:#f4f1f6;--paper:#fff;--ink:#342f3a;--muted:#7d7483;--line:#ddd6e1;
@@ -46,7 +46,7 @@ textarea{min-height:72px;resize:vertical}.col{display:grid;gap:7px}.row{display:
 .apps{position:absolute;left:50%;top:64px;transform:translateX(-50%);width:max-content;max-width:124px;text-align:center;pointer-events:none}.appTag{display:block;font-size:10px;line-height:1.18;background:#fff;border:1px solid var(--line);border-radius:7px;padding:2px 5px;white-space:pre-line;overflow-wrap:break-word;max-width:124px;text-align:center}
 .react{position:absolute;left:50%;top:-54px;transform:translateX(-50%);background:#fff;border:2px solid #ecd274;border-radius:999px;padding:3px 6px;font-size:16px;white-space:nowrap;z-index:5}
 .slot{width:68px;height:68px;border:2px dashed #ff7195aa;border-radius:18px;background:#ff719516;display:none;z-index:4000}.stage.drag .slot{display:block}.marquee{position:absolute;z-index:9998;border:2px solid #20a879;background:#20a87918;pointer-events:none}
-.noteObj{position:absolute;touch-action:none;cursor:grab;user-select:none}.noteObj.locked{cursor:not-allowed;opacity:.92}.noteObj.sel{outline:3px solid #4388ff}.noteObj.multiSel{outline:3px solid #20a879;box-shadow:0 0 0 3px #20a87922}.noteObj .noteResize{position:absolute;right:-8px;bottom:-8px;width:18px;height:18px;border-radius:50%;background:#4388ff;border:2px solid #fff;display:none;cursor:nwse-resize}.noteObj.sel .noteResize{display:block}.noteObj.rect{border:2px solid #655d69;background:#f4f1f6}.noteObj.circle{border:2px solid #655d69;background:#f4f1f6;border-radius:50%}.noteObj.triangle{background:transparent;overflow:visible}.noteObj.triangle .triShape{width:100%;height:100%;background:#f4f1f6;clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 0 0 #655d69)}.noteObj.text{min-width:70px;min-height:28px;background:transparent;border:0}.noteText{width:100%;height:100%;white-space:pre-wrap;overflow:hidden;font-weight:700;line-height:1.2;color:#514953;padding:2px}.drawGhost{position:absolute;z-index:998;border:2px dashed #4388ff;background:#4388ff12;pointer-events:none}
+.noteObj{position:absolute;touch-action:none;cursor:grab;user-select:none}.noteObj.locked{cursor:not-allowed;opacity:.92}.noteObj.sel{outline:3px solid #4388ff}.noteObj.multiSel{outline:3px solid #20a879;box-shadow:0 0 0 3px #20a87922}.noteObj .noteResize{position:absolute;right:-8px;bottom:-8px;width:18px;height:18px;border-radius:50%;background:#4388ff;border:2px solid #fff;display:none;cursor:nwse-resize}.noteObj.sel .noteResize{display:block}.noteObj.rect{border:2px solid #655d69;background:#f4f1f6}.noteObj.circle{border:2px solid #655d69;background:#f4f1f6;border-radius:50%}.noteObj.triangle{background:transparent;overflow:visible}.noteObj.triangle .triShape{width:100%;height:100%;background:#f4f1f6;clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 0 0 #655d69)}.noteObj.qslot{background:transparent;border:0;overflow:visible}.noteObj.qslot .qslotWrap{position:absolute;inset:0;border-radius:24%;background:#d9d2e7;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}.noteObj.qslot .qslotDash{position:absolute;inset:8%;border-radius:20%;border:6px dashed #f7f5fb;box-sizing:border-box}.noteObj.qslot .qslotQs{position:absolute;inset:18% 14% 16%;display:flex;align-items:center;justify-content:center;gap:8%;font-weight:1000;color:#837892;line-height:1}.noteObj.qslot .qslotQs .big{font-size:60%}.noteObj.qslot .qslotQs .small{font-size:38%;transform:translateY(16%)}.noteObj.text{min-width:70px;min-height:28px;background:transparent;border:0}.noteText{width:100%;height:100%;white-space:pre-wrap;overflow:hidden;font-weight:700;line-height:1.2;color:#514953;padding:2px}.drawGhost{position:absolute;z-index:998;border:2px dashed #4388ff;background:#4388ff12;pointer-events:none}
 
 .shapeLabel{
   position:absolute;inset:8%;
@@ -184,7 +184,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 <body>
 <div class="app">
 <header class="top">
-  <div class="brand">SẮP XẾP DRAMA</div><span class="version">LIVE LEVEL EDITOR V1.30 · REACTION & ASSET UPDATE</span>
+  <div class="brand">SẮP XẾP DRAMA</div><span class="version">LIVE LEVEL EDITOR V1.31 · REACTION & ASSET UPDATE</span>
   <button class="btn on" id="editBtn">EDIT</button><button class="btn" id="playBtn">PLAY</button>
   <details class="topMenu" id="replayMenu" style="display:none"><summary class="btn good">↻ CHƠI LẠI ▾</summary><div class="topMenuPanel" style="min-width:245px">
     <button class="btn" id="replayOriginalBtn">↻ Chơi lại · Tên gốc</button>
@@ -246,6 +246,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
         <button class="toolBtn" data-tool="circle" title="Hình tròn / ellipse">○</button>
         <button class="toolBtn" data-tool="triangle" title="Tam giác">△</button>
         <button class="toolBtn" data-tool="arrow" title="Mũi tên">➜</button>
+        <button class="toolBtn" data-tool="qslot" title="Slot dấu hỏi">?</button>
         <button class="toolBtn" data-tool="text" title="Text note">T</button>
       </div>
       <div id="stage" class="stage"><div class="editmark">1080 × 1610 · EDIT CANVAS</div></div>
@@ -899,7 +900,8 @@ function normalize(d){
   d.annotations.forEach((a,idx)=>{
     a.type=a.type||"rect";
     a.x=Number(a.x)||100;a.y=Number(a.y)||100;
-    a.w=Math.max(30,Number(a.w)||180);a.h=Math.max(24,Number(a.h)||100);
+    const qslot=a.type==="qslot";
+    a.w=Math.max(qslot?70:30,Number(a.w)||(qslot?108:180));a.h=Math.max(qslot?70:24,Number(a.h)||(qslot?108:100));
     a.fill=a.fill||"#f4f1f6";a.stroke=a.stroke||"#655d69";
     a.text=a.text??(a.type==="text"?"Note":"");
     a.fontSize=Number(a.fontSize)||28;
@@ -1322,6 +1324,8 @@ function renderLive(){
     if(a.type==="rect"||a.type==="circle"){
       el.style.background=a.fill;el.style.borderColor=a.stroke;
       el.innerHTML=`<div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+    }else if(a.type==="qslot"){
+      el.innerHTML=`<div class="qslotWrap"></div><div class="qslotDash"></div><div class="qslotQs"><span class="small">?</span><span class="big">?</span><span class="small">?</span></div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="triangle"){
       el.innerHTML=`<div class="triShape" style="background:${a.fill}"></div><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="arrow"){
@@ -1958,24 +1962,25 @@ function annotationIns(b,a){
   if(!a)return;
   const isText=a.type==="text";
   const isArrow=a.type==="arrow";
-  const typeName={rect:"RECTANGLE",circle:"CIRCLE",triangle:"TRIANGLE",arrow:"ARROW",text:"TEXT NOTE"}[a.type]||a.type.toUpperCase();
+  const isQslot=a.type==="qslot";
+  const typeName={rect:"RECTANGLE",circle:"CIRCLE",triangle:"TRIANGLE",arrow:"ARROW",qslot:"QUESTION SLOT",text:"TEXT NOTE"}[a.type]||a.type.toUpperCase();
 
   b.innerHTML=`<div class="group col">
     <div><b style="font-size:11px">🟡 ${typeName}</b></div>
 
-    ${isText
+    ${isQslot?`<div class="small">Icon slot dấu hỏi cố định để đánh dấu chỗ trống / chỗ chờ trên scene.</div>`:(isText
       ? `<label>🟡 Nội dung<textarea id="anText">${esc(a.text)}</textarea></label>`
       : `<label>🟡 Chữ trong hình (optional)<textarea id="anText" placeholder="Để trống nếu không cần chữ">${esc(a.text||"")}</textarea></label>`
-    }
-    <label>🟡 Font size<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>
+    )}
+    ${!isQslot?`<label>🟡 Font size<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>`:""}
 
-    ${isText
+    ${isQslot?"":(isText
       ? `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.stroke}"></label>`
       : `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.textColor}"></label>`
-    }
+    )}
 
-    ${!isText&&!isArrow?`<label>🟡 Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
-    ${!isText?`<label>🟡 ${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>`:""}
+    ${!isText&&!isArrow&&!isQslot?`<label>🟡 Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
+    ${!isText&&!isQslot?`<label>🟡 ${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>`:""}
     ${isArrow?`<label>🟡 Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>`:""}
 
     <div class="row"><label>🟡 X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
@@ -1998,13 +2003,13 @@ function annotationIns(b,a){
     <button class="btn danger" id="anDelete">Xóa</button>
   </div>`;
 
-  $("#anText").oninput=e=>{
+  if($("#anText"))$("#anText").oninput=e=>{
     a.text=e.target.value;save();
-    const n=document.querySelector(`[data-annotation-id="${a.id}"] ${isText?".noteText":".shapeLabel"}`);
-    if(n)n.textContent=a.text;
+    const selector=isText?".noteText":(isQslot?"":'.shapeLabel');
+    if(selector){const n=document.querySelector(`[data-annotation-id="${a.id}"] ${selector}`);if(n)n.textContent=a.text;}
   };
-  $("#anFont").oninput=e=>{a.fontSize=Math.max(8,+e.target.value||28);save();refreshImmediate()};
-  $("#anTextColor").oninput=e=>{
+  if($("#anFont"))$("#anFont").oninput=e=>{a.fontSize=Math.max(8,+e.target.value||28);save();refreshImmediate()};
+  if($("#anTextColor"))$("#anTextColor").oninput=e=>{
     if(isText)a.stroke=e.target.value;else a.textColor=e.target.value;
     save();refreshImmediate();
   };
@@ -2037,9 +2042,11 @@ function setTool(tool){
 $$(".toolBtn").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 
 function createAnnotation(type,x,y,w,h,extra={}){
+  const minW=type==="text"?120:(type==="qslot"?70:30);
+  const minH=type==="text"?40:(type==="qslot"?70:30);
   const a={
     id:uid("AN_"),type,x,y,
-    w:Math.max(type==="text"?120:30,w),h:Math.max(type==="text"?40:30,h),
+    w:Math.max(minW,w),h:Math.max(minH,h),
     fill:"#f4f1f6",stroke:"#655d69",text:type==="text"?"Note":"",
     textColor:"#514953",fontSize:28,strokeWidth:4,
     arrowXDir:extra.arrowXDir||1,arrowYDir:extra.arrowYDir||1,
@@ -2413,11 +2420,15 @@ $("#ctx").onclick=e=>{
 
 
 function startDrawTool(e){
-  const type=activeTool;if(!["rect","circle","triangle","arrow","text"].includes(type))return;
+  const type=activeTool;if(!["rect","circle","triangle","arrow","qslot","text"].includes(type))return;
   e.preventDefault();e.stopPropagation();
   const st=$("#stage"),start=logical(e),rect=st.getBoundingClientRect();
   if(type==="text"){
     createAnnotation("text",start.x,start.y,260,70);
+    return;
+  }
+  if(type==="qslot"){
+    createAnnotation("qslot",Math.max(0,start.x-54),Math.max(0,start.y-54),108,108);
     return;
   }
   const ghost=document.createElement("div");ghost.className="drawGhost";st.appendChild(ghost);
