@@ -1670,7 +1670,7 @@ function levelIns(b){
     <div class="small">Player-facing text có thể dùng token như <b>{M01}</b>; khi random tên, token tự đổi theo Character ID.</div>
   </div>
 
-  <details class="group prodDetails"><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
+  <details class="group prodDetails" open><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
     <div class="row"><label style="width:120px">Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Item</button></div>
     <label>🔵 Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
     <label>🔵 Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
@@ -1767,7 +1767,7 @@ function charIns(b,c){
 
   <div class="group"><div class="head" style="margin:0 0 4px"><b>RELATED · AUTO</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Chỉ để soi nhanh; Tool tự đọc dữ liệu đã có, GD không phải khai thêm.</div><div class="relSection"><small>Clue nhắc Character này</small>${incomingHtml}</div><div class="relSection"><small>Khi placement ${esc(c.id)} tham gia trigger</small>${outgoingHtml}</div></div>
 
-  <details class="group prodDetails"><summary>PRODUCTION · CHARACTER ART</summary><div class="prodDetailsBody col">
+  <details class="group prodDetails" open><summary>PRODUCTION · CHARACTER ART</summary><div class="prodDetailsBody col">
     ${c.type==="M"?`<label>Tray / Scene ban đầu Asset ID<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label><div class="small">Chỉ cần một asset TRAY: dùng cả khi M đặt đúng nhưng chưa Reaction hoặc khi về biểu cảm ban đầu.</div>`:`<label>Base Asset ID<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>`}
     <label>Note riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
     <div class="assetBox">${visualRows||'<span class="assetMuted">Chưa có asset state.</span>'}</div>
