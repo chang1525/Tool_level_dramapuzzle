@@ -688,6 +688,8 @@ function ensureCharacterAssetIds(c){
   c.artistNote=c.artistNote||"";
   c.baseExpression=normalizeEmotionEmoji(c.baseExpression||"😐");
   if(c.type==="M"){
+    c.baseGaze="NONE";
+    c.baseTarget="";
     c.assetTrayId=c.assetTrayId||`${c.id}_TRAY`;
     delete c.assetBaseId; // Movable dùng TRAY cho cả Scene và trạng thái ban đầu.
   }else{
@@ -890,6 +892,11 @@ function normalize(d){
         if(String(lastStep.assetId||"").trim())c.assetBaseId=String(lastStep.assetId).trim().toUpperCase();
       }
       c.reactionEvents=(c.reactionEvents||[]).filter(ev=>ev.triggerType!=="START");
+    }
+    // M chỉ dùng biểu cảm ban đầu. F vẫn có hướng mắt / target ở START.
+    if(c.type==="M"){
+      c.baseGaze="NONE";
+      c.baseTarget="";
     }
 
     c.reactionEvents.forEach(ev=>{
@@ -1219,7 +1226,7 @@ function gazeDisplay(sourceId,r){
   return h?clockArrow(h):(r.gaze==="AUTO"?"AUTO":"");
 }
 function initialStateRecord(c){
-  return {emotion:c?.baseExpression||"😐",symbol:"",gaze:c?.baseGaze||"NONE",target:c?.baseTarget||""};
+  return {emotion:c?.baseExpression||"😐",symbol:"",gaze:c?.type==="M"?"NONE":(c?.baseGaze||"NONE"),target:c?.type==="M"?"":(c?.baseTarget||"")};
 }
 function initialGazePreview(c,showTarget=false){
   const r=initialStateRecord(c),g=gazeDisplay(c.id,r);
@@ -1751,7 +1758,7 @@ function charIns(b,c){
     ...(revealByChar?[`<div class="stateCard relCard" data-rel-level="1"><b>MAIN REVEAL</b><div class="meta">Trigger có ${esc(c.id)}</div></div>`]:[])
   ].join("")||'<div class="relEmpty">Character này chưa trực tiếp làm clue/reaction/reveal thay đổi.</div>';
 
-  const initialMeta=`${esc(c.baseExpression||"😐")} — ${esc(emotionName(c.baseExpression))} · ${esc(gazeClockText(c.id,initialStateRecord(c)))}${c.baseTarget?" · target "+esc(c.baseTarget):""}`;
+  const initialMeta=`${esc(c.baseExpression||"😐")} — ${esc(emotionName(c.baseExpression))}${c.type==="F"?` · ${esc(gazeClockText(c.id,initialStateRecord(c)))}${c.baseTarget?" · target "+esc(c.baseTarget):""}`:""}`;
   const visualRows=[
     ...(c.type==="M"?[`<div class="assetLine"><span class="assetId">${esc(c.assetTrayId)}</span><span>TRAY + Scene ban đầu · ${initialMeta}</span></div>`]:[`<div class="assetLine"><span class="assetId">${esc(c.assetBaseId)}</span><span>BASE · ${initialMeta}</span></div>`]),
     ...(c.reactionEvents||[]).flatMap(ev=>(ev.steps||[]).map(st=>`<div class="assetLine"><span class="assetId">${esc(st.assetId)}</span><span>${esc(st.emotion||"∅")}${st.emotion?" — "+esc(emotionName(st.emotion)):""}${st.symbol?" "+esc(st.symbol):""} · ${esc(gazeClockText(c.id,st))}${st.target?" · target "+esc(st.target):""}</span></div>`))
@@ -1770,8 +1777,8 @@ function charIns(b,c){
     <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
     <label>🟢 Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
-    <div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">🟢 Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
-    <div class="small"><b>AUTO</b> tự tính hướng từ vị trí Character tới Target. Initial State là information player thấy ngay từ START.</div>
+    ${c.type==="F"?`<div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">🟢 Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
+    <div class="small"><b>AUTO</b> tự tính hướng từ vị trí Character tới Target. Initial State là information player thấy ngay từ START.</div>`:""}
     ${c.type==="M"?`<div class="small">Movable luôn có cả trên Scene và Tray trong Edit. <b>Vị trí trên Scene chính là đáp án.</b></div>`:""}
   </div>
 
@@ -1800,7 +1807,11 @@ function charIns(b,c){
   $("#cage").onchange=e=>{c.age=e.target.value;save()};
   if($("#cbaseasset"))$("#cbaseasset").onchange=e=>{c.assetBaseId=e.target.value.trim().toUpperCase();save();renderInspector()};
   if($("#ctrayasset"))$("#ctrayasset").onchange=e=>{c.assetTrayId=e.target.value.trim().toUpperCase();save();renderInspector()};
-  $("#cbaseexp").onchange=e=>{c.baseExpression=normalizeEmotionEmoji(e.target.value);save();renderInspector();renderLive()};$("#cbasegaze").onchange=e=>{c.baseGaze=normalizeGazeValue(e.target.value);save();renderInspector();renderLive();renderLogic()};$("#cbasetarget").onchange=e=>{c.baseTarget=e.target.value;save();renderInspector();renderLive();renderLogic()};
+  $("#cbaseexp").onchange=e=>{c.baseExpression=normalizeEmotionEmoji(e.target.value);save();renderInspector();renderLive()};
+  if(c.type==="F"){
+    $("#cbasegaze").onchange=e=>{c.baseGaze=normalizeGazeValue(e.target.value);save();renderInspector();renderLive();renderLogic()};
+    $("#cbasetarget").onchange=e=>{c.baseTarget=e.target.value;save();renderInspector();renderLive();renderLogic()};
+  }
   $("#cartnote").oninput=e=>{c.artistNote=e.target.value;save()};
   $$('[data-rel-clue]').forEach(el=>el.onclick=()=>{selected={type:"clue",id:el.dataset.relClue};refreshImmediate()});$$('[data-rel-rx]').forEach(el=>el.onclick=()=>{const [charId,eventId]=el.dataset.relRx.split("|");selected={type:"reaction",charId,eventId};refreshImmediate()});$$('[data-rel-level]').forEach(el=>el.onclick=()=>{selected={type:"level",id:"level"};refreshImmediate()});
   $("#addEvent").onclick=()=>{const ev=blankReactionEvent(c.type==="M"?"SELF_PLACED":"CHAR_PLACED");c.reactionEvents.push(ev);ensureCharacterAssetIds(c);selected={type:"reaction",charId:c.id,eventId:ev.id};save();refreshImmediate()};$$('[data-event]').forEach(el=>el.onclick=()=>{selected={type:"reaction",charId:c.id,eventId:el.dataset.event};refreshImmediate()});
@@ -2998,7 +3009,7 @@ function resolvedAssetRows(){
     const initial=initialStateRecord(c);
     const initialGaze=resolvedGazeClock(c.id,initial)?`${resolvedGazeClock(c.id,initial)} giờ`:"";
     const initialAssetId=runtimeInitialAssetId(c);
-    rows.push({assetId:initialAssetId,file:`Characters/${c.id}/${initialAssetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:c.type==="M"?"TRAY + SCENE INITIAL":"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
+    rows.push({assetId:initialAssetId,file:`Characters/${c.id}/${initialAssetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:c.type==="M"?"TRAY + SCENE INITIAL":"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.type==="F"?(c.baseTarget||""):"",gaze:c.type==="F"?initialGaze:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
 
     (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
   });
@@ -3115,8 +3126,10 @@ function runPreflightCheck(includeProduction=false){
     else if(c.type==="M"&&!/^M\d+$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Movable bắt buộc phải dùng mã Mxx.`);
     else if(c.type==="F"&&!/^F\d+$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Fixed bắt buộc phải dùng mã Fxx.`);
     if(!Number.isFinite(Number(c.x))||!Number.isFinite(Number(c.y)))addErr("CHAR_POS",`${c.id} chưa có vị trí hợp lệ trên scene.`);
-    if(c.baseTarget&&!charIds.has(c.baseTarget))addErr("INITIAL_TARGET",`${c.id}: Initial State target ${c.baseTarget} không tồn tại.`);
-    if(c.baseGaze==="AUTO"&&!c.baseTarget)addErr("INITIAL_GAZE_AUTO",`${c.id}: Initial State dùng AUTO nhưng chưa chọn Target nhìn.`);
+    if(c.type==="F"){
+      if(c.baseTarget&&!charIds.has(c.baseTarget))addErr("INITIAL_TARGET",`${c.id}: Initial State target ${c.baseTarget} không tồn tại.`);
+      if(c.baseGaze==="AUTO"&&!c.baseTarget)addErr("INITIAL_GAZE_AUTO",`${c.id}: Initial State dùng AUTO nhưng chưa chọn Target nhìn.`);
+    }
     (c.reactionEvents||[]).forEach((ev,ei)=>{
       if(ev.triggerType==="CHAR_PLACED"){
         if((ev.triggerChars||[]).length!==1)addErr("REACTION_TRIGGER_COUNT",`${c.id} Reaction ${ei+1}: CHAR_PLACED phải có đúng 1 Movable trigger.`);
