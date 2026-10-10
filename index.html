@@ -95,7 +95,14 @@ textarea{min-height:72px;resize:vertical}.col{display:grid;gap:7px}.row{display:
 body.play .sceneTools{opacity:.35;pointer-events:none}
 .tray,.clues,.logic{background:#fff;border:1px solid var(--line);border-radius:13px;margin-top:5px;padding:7px 8px}.ctop{display:flex;justify-content:space-between;font-size:12.5px;font-weight:900;margin-bottom:5px}.trayrow{display:flex;gap:10px;row-gap:28px;flex-wrap:wrap;min-height:78px}
 .token{width:35px;height:35px;border-radius:50%;background:#fff;border:3px solid var(--pink);display:grid;place-items:center;position:relative;touch-action:none;cursor:grab}.token.f{border-color:var(--purple)}.token.f .code{background:var(--purple)}.token.placed{opacity:.46;border-style:dashed}.token .name{top:44px}.token .code{bottom:-10px}.token .trayAppearance{position:absolute;left:50%;top:60px;transform:translateX(-50%);font-size:9.5px;line-height:1.15;background:#fff;border:1px solid var(--line);border-radius:7px;padding:2px 5px;width:max-content;max-width:96px;text-align:center;white-space:pre-line;overflow-wrap:break-word;font-weight:750;color:#655d69}body.play .trayrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));grid-auto-rows:minmax(96px,auto);column-gap:8px;row-gap:8px;align-items:start;padding:2px 0 12px}body.play .trayrow .token{justify-self:center}
-.cl{font-size:13.5px;line-height:1.3;background:#faf8fb;border-radius:8px;padding:5px 7px;margin:3px 0;cursor:pointer}.cl.child{margin-left:13px}.cl.locked{color:#aaa}.cl.done{opacity:.45;text-decoration:line-through;background:#eef8f2}.cl.dramaReveal{opacity:1!important;text-decoration:none!important;background:#fff2f6;border:1px solid #efbfd0;color:#a93560;font-size:15px;font-weight:950;box-shadow:0 2px 8px #b43f6920;padding:7px 9px}.dramaHookText{font-size:14px;font-weight:900;line-height:1.35;color:#342f3a}
+.cl{font-size:13.5px;line-height:1.3;background:#faf8fb;border-radius:8px;padding:5px 7px;margin:3px 0;cursor:pointer}
+/* Clue sorting (Edit only): one drag grip per clue in both panels. */
+.clueSortable{position:relative;padding-left:34px!important;min-height:35px}
+.clueGrip{position:absolute;left:5px;top:50%;transform:translateY(-50%);width:24px;height:25px;border:1px solid #ded5e4;border-radius:6px;background:#fff;color:#82748b;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;cursor:grab;touch-action:none;user-select:none;z-index:2;padding:0}
+.clueGrip:hover{background:#ece8ff;color:#5947a7;border-color:#b9ade8}.clueGrip:active{cursor:grabbing}
+.clueSortable.clueDragSource{opacity:.45}.clueSortable.clueDropBefore:before,.clueSortable.clueDropAfter:after{content:"";position:absolute;left:0;right:0;height:4px;border-radius:5px;background:#35b879;z-index:30;pointer-events:none}.clueSortable.clueDropBefore:before{top:-4px}.clueSortable.clueDropAfter:after{bottom:-4px}
+.clueDragGhost{position:fixed;z-index:60000;pointer-events:none;max-width:300px;padding:7px 10px;border:1px solid #9582d8;border-radius:9px;background:#fff;box-shadow:0 8px 28px #342f3a40;color:#342f3a;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cl.child{margin-left:13px}.cl.locked{color:#aaa}.cl.done{opacity:.45;text-decoration:line-through;background:#eef8f2}.cl.dramaReveal{opacity:1!important;text-decoration:none!important;background:#fff2f6;border:1px solid #efbfd0;color:#a93560;font-size:15px;font-weight:950;box-shadow:0 2px 8px #b43f6920;padding:7px 9px}.dramaHookText{font-size:14px;font-weight:900;line-height:1.35;color:#342f3a}
 .logic{max-height:180px;overflow:auto}.rule{font-size:13px;background:#faf8fb;border-left:3px solid #5e5564;border-radius:6px;padding:5px 7px;margin:3px 0}.rule.logicEdge{border-left-style:dashed;border-left-color:var(--purple)}.warn{border-left-color:var(--bad);background:#fff2f3}
 .ins-empty{font-size:12.5px;color:var(--muted);border:1px dashed var(--line);border-radius:9px;padding:8px}.group{border:1px solid var(--line);border-radius:9px;padding:8px;margin-bottom:6px}
 .iconGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.icon{height:34px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:16px;padding:0}.icon.sel{border-color:var(--pink);background:#fff0f5;box-shadow:0 0 0 2px #ff6f961b}
@@ -235,6 +242,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
     <div id="charList"></div>
 
     <div class="head"><b>Clue Tree</b><button class="btn" id="addClue">🟢 + Root</button></div>
+    <div class="small" style="margin-bottom:5px">Kéo nút ⠿ để đổi thứ tự clue (chỉ trong cùng cấp). Clue mẹ đi kèm các clue con.</div>
     <div id="clueList"></div>
 
     <div class="head"><b>Reaction Events</b></div>
@@ -1345,6 +1353,7 @@ function renderLists(){
 
   const roots=data.clues.filter(c=>!c.parent);
   $("#clueList").innerHTML=roots.map(c=>clueList(c)).join("");
+  bindClueDragHandles($("#clueList"));
 
   const rx=[];
   sortedCharacters().forEach(c=>(c.reactionEvents||[]).forEach((ev,i)=>rx.push({char:c,event:ev,index:i})));
@@ -1368,7 +1377,8 @@ function clueList(c){
   const kids=data.clues.filter(x=>x.parent===c.id);
   const state=c.parent?c.preOpen:"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
-  return `<div><div class="card ${selected.type==="clue"&&selected.id===c.id?"sel":""}" data-s="clue:${c.id}">
+  return `<div><div class="card clueSortable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" data-s="clue:${c.id}" data-clue-row="${c.id}">
+    <button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button>
     <b>${c.id}</b> <span class="pill ${state.toLowerCase()}">${label}</span>
     <div class="meta">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</div></div>
     ${kids.length?`<div style="margin-left:13px">${kids.map(clueList).join("")}</div>`:""}</div>`;
@@ -1533,7 +1543,7 @@ function renderLive(){
 function editClue(c,d){
   const state=c.parent?c.preOpen:"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
-  return `<div class="cl ${d?"child":""}" data-live="${c.id}"><b>${c.id}</b> · <span data-clue-text="${c.id}">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</span> <span class="pill ${state.toLowerCase()}">${label}</span></div>`+
+  return `<div class="cl clueSortable ${d?"child":""}" data-live="${c.id}" data-clue-row="${c.id}"><button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button><b>${c.id}</b> · <span data-clue-text="${c.id}">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</span> <span class="pill ${state.toLowerCase()}">${label}</span></div>`+
     data.clues.filter(x=>x.parent===c.id).map(k=>editClue(k,d+1)).join("");
 }
 function playDramaReveal(depth=0){
@@ -1563,7 +1573,10 @@ function renderClues(){
   const roots=data.clues.filter(c=>!c.parent);
   const rootReveal=!data.level.revealParentClueId?playDramaReveal(0):"";
   $("#liveClues").innerHTML=mode==="edit"?roots.map(c=>editClue(c,0)).join(""):roots.map(c=>playClue(c,0)).join("")+rootReveal;
-  if(mode==="edit")$$("[data-live]").forEach(e=>e.onclick=()=>{selected={type:"clue",id:e.dataset.live};refreshImmediate()});
+  if(mode==="edit"){
+    $$("[data-live]").forEach(e=>e.onclick=()=>{selected={type:"clue",id:e.dataset.live};refreshImmediate()});
+    bindClueDragHandles($("#liveClues"));
+  }
 }
 
 function renderTray(){
@@ -2224,12 +2237,15 @@ function clueDescendantIds(rootId){
 }
 
 function renumberClues(){
-  if(!data.clues.length)return;
+  if(!data.clues.length){data.level.revealParentClueId="";return}
 
-  // Keep object relationships before changing IDs.
+  // Resolve every reference BEFORE IDs change. Renumbering must not retarget
+  // the Main Reveal or selection to the wrong clue after a drag.
   const oldMap=new Map(data.clues.map(c=>[c.id,c]));
   const parentObj=new Map();
   data.clues.forEach(c=>parentObj.set(c,c.parent?oldMap.get(c.parent)||null:null));
+  const selectedObj=selected.type==="clue"?oldMap.get(selected.id):null;
+  const revealObj=data.level.revealParentClueId?oldMap.get(data.level.revealParentClueId):null;
 
   const roots=data.clues.filter(c=>!parentObj.get(c));
   const childrenOf=p=>data.clues.filter(c=>parentObj.get(c)===p);
@@ -2239,22 +2255,135 @@ function renumberClues(){
     c.id=newId;
     childrenOf(c).forEach((child,i)=>assign(child,newId+"."+(i+1)));
   };
+  roots.forEach(root=>assign(root,"CL"+String(rootIndex++).padStart(2,"0")));
 
-  roots.forEach(root=>{
-    assign(root,"CL"+String(rootIndex++).padStart(2,"0"));
-  });
-
-  // Refresh parent IDs after every clue has its new ID.
   data.clues.forEach(c=>{
     const p=parentObj.get(c);
     c.parent=p?p.id:null;
   });
+  if(selectedObj)selected.id=selectedObj.id;
+  if(data.level.revealParentClueId)data.level.revealParentClueId=revealObj?.id||"";
+}
 
-  // selected clue follows the same object if possible
-  if(selected.type==="clue"){
-    const selectedObj=[...oldMap.values()].find(c=>c.id===selected.id) || null;
-    if(selectedObj)selected.id=selectedObj.id;
+// Reordering changes sibling order only. Moving a root moves its entire
+// subtree; a child can only move among the children of its current parent.
+function reorderClue(sourceId,targetId,before){
+  const source=byClue(sourceId),target=byClue(targetId);
+  if(!source||!target||source===target||source.parent!==target.parent)return false;
+  const grouped=new Map();
+  for(const c of data.clues){
+    const parent=c.parent||"";
+    if(!grouped.has(parent))grouped.set(parent,[]);
+    grouped.get(parent).push(c);
   }
+  const group=grouped.get(source.parent||"");
+  if(!group)return false;
+  const oldIndex=group.indexOf(source),targetIndex=group.indexOf(target);
+  if(oldIndex<0||targetIndex<0)return false;
+  group.splice(oldIndex,1);
+  const insertIndex=group.indexOf(target)+(before?0:1);
+  group.splice(insertIndex,0,source);
+  if(group.every((c,i)=>c===data.clues.filter(x=>x.parent===source.parent)[i]))return false;
+
+  // Flatten in tree order, keeping each parent and its descendants together.
+  const ordered=[],seen=new Set();
+  function visit(parentId){
+    for(const c of grouped.get(parentId)||[]){
+      if(seen.has(c))continue;
+      seen.add(c);ordered.push(c);visit(c.id);
+    }
+  }
+  visit("");
+  if(ordered.length!==data.clues.length)return false;
+  data.clues=ordered;
+  selected={type:"clue",id:sourceId};
+  renumberClues();
+  save();refreshImmediate();
+  toast("Đã đổi thứ tự clue");
+  return true;
+}
+
+// Pointer-based dragging works on desktop and touch. The source and target
+// may be in different panels; both panels always use the same data.clues.
+function bindClueDragHandles(container){
+  if(!container||mode!=="edit")return;
+  container.querySelectorAll("[data-clue-grip]").forEach(handle=>{
+    handle.onclick=e=>{e.preventDefault();e.stopPropagation()};
+    handle.onpointerdown=e=>{
+      if(e.button!==0||mode!=="edit")return;
+      const sourceId=handle.dataset.clueGrip;
+      const source=byClue(sourceId);
+      if(!source)return;
+      e.preventDefault();e.stopPropagation();
+      let active=false,ghost=null,dropRow=null,dropBefore=true;
+      let x=e.clientX,y=e.clientY;
+      const startX=x,startY=y;
+      const sourceRows=$$('[data-clue-row]').filter(r=>r.dataset.clueRow===sourceId);
+      function clearDrop(){
+        $$(".clueDropBefore,.clueDropAfter").forEach(r=>r.classList.remove("clueDropBefore","clueDropAfter"));
+        dropRow=null;
+      }
+      function updateDrop(){
+        clearDrop();
+        const hit=document.elementFromPoint(x,y);
+        const row=hit?.closest?.("[data-clue-row]");
+        if(!row||row.dataset.clueRow===sourceId)return;
+        const candidate=byClue(row.dataset.clueRow);
+        if(!candidate||candidate.parent!==source.parent)return;
+        const bounds=row.getBoundingClientRect();
+        dropBefore=y<bounds.top+bounds.height/2;
+        dropRow=row;
+        row.classList.add(dropBefore?"clueDropBefore":"clueDropAfter");
+      }
+      function scrollNearEdges(){
+        if(!active)return;
+        for(const area of [$(".left"),$(".center")]){
+          if(!area)continue;
+          const r=area.getBoundingClientRect();
+          if(x<r.left||x>r.right||y<r.top||y>r.bottom)continue;
+          const pad=45;
+          const dy=y<r.top+pad?-12:y>r.bottom-pad?12:0;
+          if(dy)area.scrollTop+=dy;
+        }
+        updateDrop();
+        frame=requestAnimationFrame(scrollNearEdges);
+      }
+      let frame=0;
+      const move=ev=>{
+        x=ev.clientX;y=ev.clientY;
+        if(!active&&Math.hypot(x-startX,y-startY)<6)return;
+        if(!active){
+          active=true;
+          ghost=document.createElement("div");ghost.className="clueDragGhost";
+          ghost.textContent=`${sourceId} · ${(source.text||"(draft)").slice(0,65)}`;
+          document.body.appendChild(ghost);
+          sourceRows.forEach(r=>r.classList.add("clueDragSource"));
+          frame=requestAnimationFrame(scrollNearEdges);
+        }
+        if(ghost){ghost.style.left=(x+14)+"px";ghost.style.top=(y+12)+"px"}
+        updateDrop();
+      };
+      const finish=ev=>{
+        window.removeEventListener("pointermove",move);
+        window.removeEventListener("pointerup",finish);
+        window.removeEventListener("pointercancel",cancel);
+        cancelAnimationFrame(frame);
+        const targetId=dropRow?.dataset.clueRow,wasActive=active,wasBefore=dropBefore;
+        clearDrop();ghost?.remove();sourceRows.forEach(r=>r.classList.remove("clueDragSource"));
+        if(wasActive&&targetId)reorderClue(sourceId,targetId,wasBefore);
+      };
+      const cancel=()=>{
+        window.removeEventListener("pointermove",move);
+        window.removeEventListener("pointerup",finish);
+        window.removeEventListener("pointercancel",cancel);
+        cancelAnimationFrame(frame);
+        clearDrop();ghost?.remove();sourceRows.forEach(r=>r.classList.remove("clueDragSource"));
+      };
+      window.addEventListener("pointermove",move,{passive:false});
+      window.addEventListener("pointerup",finish);
+      window.addEventListener("pointercancel",cancel);
+    };
+  });
 }
 
 function addClue(parent=null){
