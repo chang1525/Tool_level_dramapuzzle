@@ -179,6 +179,14 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 .sgv3Edge{fill:none;stroke:#716978;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.sgv3Edge.opening{stroke:#35a871}.sgv3Edge.or{stroke:#b08a27;stroke-dasharray:7 5}.sgv3Edge.reveal{stroke:#df6d8e;stroke-width:2;stroke-dasharray:6 5}.sgv3EndLine{stroke:#83a994;stroke-width:2;stroke-dasharray:5 5;fill:none}.sgv3EndLabel{font-size:9px;font-weight:900;fill:#5d7f6d}
 @media(max-width:1120px){.sgv3Main{grid-template-columns:1fr}.sgv3Side{min-height:0;max-height:none}}
 
+/* Project safety: cảnh báo độc lập với bản nháp tự lưu của trình duyệt */
+.projectSaveStatus{font-size:11px;line-height:1.45;font-weight:800;color:#97621d;margin-top:3px;max-width:370px}
+.projectSaveStatus.saved{color:#227d54}.projectSaveStatus.failed{color:#b0434f}
+.unsavedOverlay{position:fixed;inset:0;z-index:31000;background:#2d24357d;display:none;place-items:center;padding:18px}
+.unsavedOverlay.show{display:grid}
+.unsavedDialog{width:min(480px,96vw);background:white;border-radius:15px;box-shadow:0 18px 50px #2d24354b;padding:19px;display:grid;gap:13px}
+.unsavedDialog>b{font-size:18px}.unsavedActions{display:flex;flex-wrap:wrap;gap:8px}
+.unsavedActions .btn{flex:1;min-width:120px}
 </style>
 </head>
 <body>
@@ -194,6 +202,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
   <span class="pill" id="playNameStatus" style="display:none">Tên: tên Edit</span>
   <button class="btn" id="logicFlowBtn">FLOW</button><button class="btn" id="difficultyTestBtn">TEST ĐỘ KHÓ</button><button class="btn" id="checkLevelBtn">CHECK</button>
   <div class="spacer"></div>
+  <button class="btn" id="newLevelBtn">+ LEVEL MỚI</button>
   <button class="btn" id="saveBtn">LƯU PROJECT</button>
   <label class="btn">MỞ PROJECT<input id="importFile" type="file" accept=".json" style="display:none"></label>
   <details class="topMenu" id="productionMenu"><summary class="btn">PRODUCTION</summary><div class="topMenuPanel">
@@ -207,8 +216,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
     <button class="btn" id="sampleBirthdayBtn">Birthday Photo Booth · L003</button>
   </div></details>
   <details class="topMenu" id="moreMenu"><summary class="btn">⋯</summary><div class="topMenuPanel">
-    <button class="btn" id="saveAsBtn">LƯU THÀNH FILE MỚI</button>
-    <button class="btn danger" id="resetBtn">Reset trắng</button>
+    <button class="btn" id="saveAsBtn">LƯU BẢN SAO (FILE MỚI)</button>
   </div></details>
 </header>
 
@@ -236,7 +244,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 
 <main class="center">
   <div class="editor">
-    <div class="leveltop"><div><div class="small">LEVEL SANDBOX</div><b id="liveName">LEVEL</b></div><div class="moves"><small>MẠNG</small><b id="liveMoves">❤️❤️</b></div></div>
+    <div class="leveltop"><div><div class="small">LEVEL SANDBOX</div><b id="liveName">LEVEL</b><div class="projectSaveStatus" id="projectSaveStatus">Chưa lưu vào JSON</div></div><div class="moves"><small>MẠNG</small><b id="liveMoves">❤️❤️</b></div></div>
     <div class="hook"><div id="liveHook" class="dramaHookText"></div></div>
 
     <div class="sceneRow">
@@ -369,6 +377,17 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
   </div>
 </div>
 
+<div id="unsavedOverlay" class="unsavedOverlay" role="dialog" aria-modal="true" aria-labelledby="unsavedTitle">
+  <div class="unsavedDialog">
+    <b id="unsavedTitle">Có thay đổi chưa lưu vào Project JSON</b>
+    <div id="unsavedMessage" class="small"></div>
+    <div class="unsavedActions">
+      <button type="button" class="btn good" id="unsavedSaveBtn">Lưu rồi tiếp tục</button>
+      <button type="button" class="btn danger" id="unsavedDiscardBtn">Bỏ thay đổi</button>
+      <button type="button" class="btn" id="unsavedCancelBtn">Hủy</button>
+    </div>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -992,14 +1011,30 @@ let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxT
 let multiSel=new Set();
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
+// Chỉ một file JSON do GD chủ động lưu được tính là bản lưu; localStorage chỉ là bản nháp.
+// Nếu reload trang, không tự giả định bản nháp đã được lưu ra file.
+let savedProjectSnapshot=(data.characters.length||data.clues.length||data.images.length||data.annotations.length||
+  data.level.id||data.level.hook||data.level.reveal)?null:JSON.stringify(data);
+let autoSaveFailed=false,projectOperationBusy=false;
 const PLAY_PROGRESS_KEY="dramaEditorPlayProgressV127Lives";
 
+function currentProjectSnapshot(){return JSON.stringify(data)}
+function hasUnsavedProjectChanges(){return savedProjectSnapshot===null||currentProjectSnapshot()!==savedProjectSnapshot}
+function updateProjectSaveStatus(){
+  const el=$("#projectSaveStatus");if(!el)return;
+  const dirty=hasUnsavedProjectChanges();
+  el.className="projectSaveStatus"+(autoSaveFailed?" failed":(dirty?"":" saved"));
+  el.textContent=autoSaveFailed
+    ?"⚠ Tự lưu trình duyệt thất bại — hãy LƯU PROJECT JSON ngay"
+    :(dirty?"● Chưa lưu vào file Project JSON":"✓ Không có thay đổi chưa lưu");
+}
+function setSavedBaseline(snapshot=null){savedProjectSnapshot=snapshot??currentProjectSnapshot();updateProjectSaveStatus()}
 function persistRaw(){
   try{
     localStorage.setItem("dramaEditorV1_1",JSON.stringify(data));
-    return true;
+    autoSaveFailed=false;updateProjectSaveStatus();return true;
   }catch(e){
-    return false;
+    autoSaveFailed=true;updateProjectSaveStatus();return false;
   }
 }
 function save(){
@@ -1272,7 +1307,7 @@ function reactionPlayPreview(r,sourceId=""){
 }
 
 
-function render(){renderLists();renderLive();renderInspector();renderLogic()}
+function render(){renderLists();renderLive();renderInspector();renderLogic();updateProjectSaveStatus()}
 function refreshImmediate(){
   const seq=++refreshImmediate.seq;
   render();
@@ -3392,44 +3427,52 @@ function projectSaveIdentity(){
 function detachProjectFile(){projectFileHandle=null;lastSavedProjectIdentity=null;}
 let lastSavedProjectIdentity=null;
 async function saveProjectFile(forceNew=false){
-  save();
-  savePlayProgress();
-  const editorData=deep(data);editorData.editorSchemaVersion="1.31";
+  if(projectOperationBusy)return false;
+  // Nếu thay ID/Version, tuyệt đối không ghi thẳng vào file của level trước.
+  const identity=projectSaveIdentity();
+  if(lastSavedProjectIdentity!==identity)detachProjectFile();
+  const snapshotToSave=currentProjectSnapshot();
+  const editorData=JSON.parse(snapshotToSave);editorData.editorSchemaVersion="1.31";
   const json=JSON.stringify(editorData,null,2);
   const idPart=(data.level.id||"drama_level").replace(/[^\w\-]+/g,"_");
   const filename=`${idPart}_v${String(data.level.version||"1.0").replace(/[^\w.\-]+/g,"_")}.editor.json`;
-  const identity=projectSaveIdentity();
-  if(lastSavedProjectIdentity!==identity)detachProjectFile();
-
-  if("showSaveFilePicker" in window){
-    try{
-      // Chỉ chọn handle mới khi cần. Cancel không ghi đè và không tạo download.
-      const handle=(!forceNew&&projectFileHandle)?projectFileHandle:await window.showSaveFilePicker({
-        suggestedName:filename,
-        types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
-      });
-      const writable=await handle.createWritable();
-      await writable.write(json);
-      await writable.close();
-      projectFileHandle=handle;
-      lastSavedProjectIdentity=identity;
-      toast(forceNew?"Đã lưu thành file mới":"Đã lưu Project");
-      return;
-    }catch(e){
-      if(e?.name==="AbortError")return;
-      // Nếu trình duyệt không cho ghi file: tải JSON mới, không được ghi đè file cũ.
-      console.warn("Save Project failed; downloading JSON instead",e);
+  projectOperationBusy=true;
+  try{
+    if("showSaveFilePicker" in window){
+      try{
+        const handle=(!forceNew&&projectFileHandle)?projectFileHandle:await window.showSaveFilePicker({
+          suggestedName:filename,
+          types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
+        });
+        const writable=await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        projectFileHandle=handle;
+        lastSavedProjectIdentity=identity;
+        setSavedBaseline(snapshotToSave);
+        toast(forceNew?"Đã lưu bản sao JSON mới":"Đã lưu Project JSON");
+        return true;
+      }catch(e){
+        if(e?.name==="AbortError")return false;
+        console.warn("Cannot save directly; downloading new JSON",e);
+        // Không bao giờ ghi đè handle cũ nếu trình duyệt báo lỗi.
+        detachProjectFile();
+      }
     }
-  }
-  const blob=new Blob([json],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=filename;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  // Trình duyệt không hỗ trợ handle: lần sau tiếp tục tải JSON, không ghi đè file nào.
-  detachProjectFile();
-  toast("Đã tải Project JSON mới");
+    // Fallback: trình duyệt không có API ghi file. Mỗi lần xuất một file JSON mới.
+    const blob=new Blob([json],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=filename;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    detachProjectFile();
+    setSavedBaseline(snapshotToSave);
+    toast("Đã yêu cầu tải Project JSON — kiểm tra Downloads");
+    return true;
+  }catch(e){
+    console.error("Save Project failed",e);
+    toast("Lưu Project thất bại. Dữ liệu vẫn ở trong Tool");
+    return false;
+  }finally{projectOperationBusy=false;updateProjectSaveStatus()}
 }
 $("#saveBtn").onclick=()=>saveProjectFile(false);
 $("#saveAsBtn").onclick=()=>saveProjectFile(true);
@@ -3443,57 +3486,106 @@ $("#exportBtn").onclick=()=>{
 };
 $("#assetRequestBtn").onclick=exportAssetRequest;
 $("#scenePngBtn").onclick=exportScenePng;
-$("#importFile").onchange=e=>{
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{
-    const raw=JSON.parse(r.result);
-    // Runtime JSON chỉ chứa dữ liệu Dev. Khi import lại Tool, khôi phục phần runtime có thể khôi phục;
-    // dữ liệu Art/authoring đã chủ động bỏ khỏi Dev JSON sẽ không thể tự sinh lại.
-    if(/^drama-level-runtime-2\./.test(raw?.schemaVersion||"")){
-      toast("Đây là Dev JSON, không phải file Project. Hãy import .editor.json để làm tiếp.");
-      e.target.value="";
-      return;
-    }
-    if(raw?.schemaVersion==="drama-level-runtime-1.0"){
-      raw.level=raw.level||{};
-      raw.level.art={...blankLevelArt(),backgroundAssetId:raw.scene?.backgroundAssetId||"BG01"};
-      raw.characters=(raw.characters||[]).map(c=>({
-        ...c,
-        assetBaseId:c.assets?.base||`${c.id}_BASE`,
-        assetTrayId:c.type==="M"?(c.assets?.tray||`${c.id}_TRAY`):"",
-        reactionEvents:(c.reactionEvents||[]).map(ev=>({
-          ...ev,steps:(ev.steps||[]).map(st=>({id:uid("ST_"),...st}))
-        }))
-      }));
-      raw.clues=(raw.clues||[]).map(cl=>({...cl}));
-    }
-    // Production/Runtime JSON để ending ở top-level; Editor JSON để ở level.ending. Migrate về một nguồn dữ liệu chung.
-    if(raw?.ending){
-      raw.level=raw.level||{};
-      raw.level.ending={...blankEnding(),...(raw.level.ending||{}),
-        endingLine:raw.ending.endingLine??raw.level.ending?.endingLine??"",
-        verdictCta:raw.ending.verdictCta??raw.level.ending?.verdictCta??"",
-        imageAssetId:raw.ending.imageAssetId??raw.level.ending?.imageAssetId??"ENDING01",
-        imageSrc:raw.ending.imageSrc??raw.level.ending?.imageSrc??"",
-        rewardCoins:ENDING_REWARD_COINS,normalRewardCoins:ENDING_NORMAL_COINS
-      };
-    }
-    playSession++;clearPlayProgress();detachProjectFile();
-    data=normalize(raw);selected={type:"level",id:"level"};mode="edit";multiSel.clear();lastSnapshot=JSON.stringify(data);persistRaw();refreshImmediate();toast("Đã mở Project");
-  }catch(_){toast("JSON lỗi")}};
-  r.readAsText(f);
+
+// Hỏi trước khi rời dữ liệu chưa lưu. Cancel không đụng vào level hiện tại.
+function confirmBeforeLeaving(actionName){
+  if(!hasUnsavedProjectChanges())return Promise.resolve(true);
+  return new Promise(resolve=>{
+    const overlay=$("#unsavedOverlay"),message=$("#unsavedMessage");
+    const levelId=data.level.id||"Level chưa có mã";
+    message.textContent=`${levelId} có thay đổi chưa lưu vào file .editor.json. Tự lưu trong trình duyệt KHÔNG thay thế cho LƯU PROJECT. Trước khi ${actionName}, chọn cách xử lý:`;
+    overlay.classList.add("show");
+    const saveBtn=$("#unsavedSaveBtn"),discardBtn=$("#unsavedDiscardBtn"),cancelBtn=$("#unsavedCancelBtn");
+    let settled=false;
+    const finish=result=>{if(settled)return;settled=true;overlay.classList.remove("show");resolve(result)};
+    cancelBtn.onclick=()=>finish(false);
+    discardBtn.onclick=()=>finish(true);
+    saveBtn.onclick=async()=>{
+      saveBtn.disabled=true;discardBtn.disabled=true;cancelBtn.disabled=true;
+      let ok=false;
+      try{ok=await saveProjectFile(false)}catch(e){console.error(e)}
+      saveBtn.disabled=false;discardBtn.disabled=false;cancelBtn.disabled=false;
+      if(ok)finish(true);
+      else{message.textContent=`Chưa lưu được ${levelId}. Level vẫn đang ở đây; mày có thể thử lưu lại, bỏ thay đổi hoặc hủy.`;}
+    };
+  });
+}
+function openAsNewSession(raw,{fromFile=false}={}){
+  // Tất cả trạng thái của level cũ (kể cả Undo, tiến trình PLAY và file handle) phải được ngắt.
+  playSession++;clearPlayProgress();detachProjectFile();
+  data=normalize(raw);selected={type:"level",id:"level"};mode="edit";multiSel.clear();
+  undoStack=[];redoStack=[];lastSnapshot=currentProjectSnapshot();
+  setTool("select");
+  // File đã mở từ ổ đĩa = bản gốc đã lưu. Level mẫu / trắng = điểm bắt đầu chưa sửa.
+  savedProjectSnapshot=currentProjectSnapshot();
+  persistRaw();refreshImmediate();
+}
+function migrateImportedProject(raw){
+  if(/^drama-level-runtime-2\./.test(raw?.schemaVersion||"")){
+    throw new Error("Đây là Dev JSON, không phải file Project. Hãy mở .editor.json.");
+  }
+  if(raw?.schemaVersion==="drama-level-runtime-1.0"){
+    raw.level=raw.level||{};
+    raw.level.art={...blankLevelArt(),backgroundAssetId:raw.scene?.backgroundAssetId||"BG01"};
+    raw.characters=(raw.characters||[]).map(c=>({
+      ...c,assetBaseId:c.assets?.base||`${c.id}_BASE`,
+      assetTrayId:c.type==="M"?(c.assets?.tray||`${c.id}_TRAY`):"",
+      reactionEvents:(c.reactionEvents||[]).map(ev=>({...ev,steps:(ev.steps||[]).map(st=>({id:uid("ST_"),...st}))}))
+    }));
+    raw.clues=(raw.clues||[]).map(cl=>({...cl}));
+  }
+  if(raw?.ending){
+    raw.level=raw.level||{};
+    raw.level.ending={...blankEnding(),...(raw.level.ending||{}),
+      endingLine:raw.ending.endingLine??raw.level.ending?.endingLine??"",
+      verdictCta:raw.ending.verdictCta??raw.level.ending?.verdictCta??"",
+      imageAssetId:raw.ending.imageAssetId??raw.level.ending?.imageAssetId??"ENDING01",
+      imageSrc:raw.ending.imageSrc??raw.level.ending?.imageSrc??"",
+      rewardCoins:ENDING_REWARD_COINS,normalRewardCoins:ENDING_NORMAL_COINS
+    };
+  }
+  return raw;
+}
+$("#importFile").onchange=async e=>{
+  const input=e.target,f=input.files?.[0];
+  // QUAN TRỌNG: bỏ lựa chọn trước khi chờ thao tác đọc / xác nhận.
+  // Chọn lại chính file L007.editor.json vẫn phát sinh onchange.
+  input.value="";
+  if(!f)return;
+  let raw;
+  try{raw=migrateImportedProject(JSON.parse(await f.text()));}
+  catch(err){console.warn(err);toast(err.message?.includes("Dev JSON")?err.message:"Không đọc được Project JSON");return;}
+  if(!raw||typeof raw!=="object"||!raw.level||!Array.isArray(raw.characters)||!Array.isArray(raw.clues)){
+    toast("File không đúng định dạng Editor Project");return;
+  }
+  if(!await confirmBeforeLeaving("mở Project khác"))return;
+  try{openAsNewSession(raw,{fromFile:true});toast(`Đã mở Project: ${data.level.id||f.name}`)}
+  catch(err){console.error(err);toast("Mở Project thất bại — dữ liệu cũ được giữ lại")}
 };
 
-// SAMPLE: giữ riêng các level mẫu để GD mở nhanh khi train / tham khảo.
-function loadSampleProject(sampleData,message){
-  playSession++;clearPlayProgress();detachProjectFile();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
+// SAMPLE là nguồn tham khảo, không bao giờ là file đang được liên kết để ghi đè.
+async function loadSampleProject(sampleData,message){
+  if(!await confirmBeforeLeaving("chuyển sang Sample"))return;
+  openAsNewSession(sampleData);
+  toast(message);
+}
+async function createNewLevel(){
+  if(!await confirmBeforeLeaving("tạo level mới"))return;
+  openAsNewSession(blank());
+  toast("Đã tạo LEVEL MỚI — file JSON cũ không bị ghi đè");
 }
 $("#checkLevelBtn").onclick=openPreflightCheck;
 $("#closeCheckLevel").onclick=()=>$("#checkOverlay").classList.remove("show");
 $("#checkOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#checkOverlay"))$("#checkOverlay").classList.remove("show")});
 $("#sampleWeddingBtn").onclick=()=>loadSampleProject(sample(),"Đã load Sample Wedding · L001");
 $("#sampleBirthdayBtn").onclick=()=>loadSampleProject(sampleBirthday(),"Đã load Sample Birthday Photo Booth · L003");
-$("#resetBtn").onclick=()=>{if(!confirm("Reset trắng toàn bộ level hiện tại?"))return;playSession++;clearPlayProgress();detachProjectFile();data=normalize(blank());selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast("Đã reset trắng hoàn toàn")};
+$("#newLevelBtn").onclick=createNewLevel;
+window.addEventListener("beforeunload",e=>{
+  if(hasUnsavedProjectChanges()){
+    e.preventDefault();
+    e.returnValue="";
+  }
+});
 
 $("#overlay").addEventListener("pointerdown",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("show")});
 $("#endingOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#endingOverlay"))$("#endingOverlay").classList.remove("show")});
@@ -3502,7 +3594,7 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classLi
 
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});
-["resetBtn","saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
+["saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
 play=loadPlayProgress();
 render();
 })();
