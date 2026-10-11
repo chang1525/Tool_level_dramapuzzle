@@ -288,7 +288,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 
 <div id="ctx" class="ctx">
 <button data-a="copy">Copy</button>
-<button data-a="paste">Paste</button>
+<button data-a="paste">Dán vật trong Scene</button>
 <button data-a="duplicate">Duplicate</button>
 <button data-a="front">Bring to Front</button>
 <button data-a="forward">Bring Forward</button>
@@ -1018,7 +1018,8 @@ let data=normalize((()=>{try{return JSON.parse(localStorage.getItem("dramaEditor
 let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxType="image", activeTool="select";
 let multiSel=new Set();
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
-let projectFileHandle=null, sceneClipboard=null, playSession=0;
+let projectFileHandle=null, sceneClipboard=null, sceneClipboardMarker="", playSession=0;
+const SCENE_CLIP_PREFIX="SXD_SCENE_COPY:";
 // Chỉ một file JSON do GD chủ động lưu được tính là bản lưu; localStorage chỉ là bản nháp.
 // Nếu reload trang, không tự giả định bản nháp đã được lưu ra file.
 let savedProjectSnapshot=(data.characters.length||data.clues.length||data.images.length||data.annotations.length||
@@ -2516,21 +2517,41 @@ $("#imgInput").onchange=e=>{
   e.target.value="";
 };
 
+// Đồng bộ vật copy trong Scene vào clipboard thật, bằng dấu nhận dạng của lần copy.
+// Nhờ vậy một ảnh / đoạn text vừa copy từ ngoài sẽ KHÔNG bị clipboard cũ của Scene đè lên.
+document.addEventListener("copy",e=>{
+  if(mode!=="edit"||isTypingTarget(e.target)||!selectedSceneKeys().length)return;
+  if(!copySceneSelection())return;
+  sceneClipboardMarker=SCENE_CLIP_PREFIX+uid("");
+  if(e.clipboardData){
+    e.clipboardData.setData("text/plain",sceneClipboardMarker);
+    e.preventDefault();
+  }
+});
+
 document.addEventListener("paste",e=>{
-  // Paste trong ENDING là dữ liệu của Ending Image / text field, tuyệt đối không tạo Reference Layer trên scene.
+  // Không can thiệp khi đang nhập chữ hoặc thao tác trong popup Ending.
   if(e.target?.closest?.("#endingOverlay") || $("#endingOverlay")?.classList.contains("show"))return;
-  if(sceneClipboard?.length&&!isTypingTarget(document.activeElement))return;
+  if(isTypingTarget(e.target)||isTypingTarget(document.activeElement))return;
   const items=[...(e.clipboardData?.items||[])];
   const imgs=items.filter(i=>i.type&&i.type.startsWith("image/"));
-  if(!imgs.length)return;
 
-  e.preventDefault();
-  forceEditModeNow();
+  // Ưu tiên nội dung ảnh THỰC SỰ đang nằm trong clipboard của hệ điều hành.
+  if(imgs.length){
+    e.preventDefault();
+    forceEditModeNow();
+    imgs.forEach(i=>{const f=i.getAsFile();if(f)addImage(f)});
+    return;
+  }
 
-  imgs.forEach(i=>{
-    const f=i.getAsFile();
-    if(f)addImage(f);
-  });
+  // Chỉ nhân bản Scene object nếu clipboard vẫn chứa đúng dấu của lần copy Scene gần nhất.
+  const text=e.clipboardData?.getData("text/plain")||"";
+  if(sceneClipboard?.length&&sceneClipboardMarker&&text===sceneClipboardMarker){
+    e.preventDefault();
+    forceEditModeNow();
+    pasteSceneClipboard();
+  }
+  // Clipboard chứa dữ liệu khác: để trình duyệt xử lý bình thường, không dán vật cũ.
 });
 
 function selectedSceneKeys(){
@@ -2640,7 +2661,17 @@ document.addEventListener("click",()=>$("#ctx").style.display="none");
 $("#ctx").onclick=e=>{
   const action=e.target.dataset.a;if(!action)return;
 
-  if(action==="copy"){copySceneSelection();$("#ctx").style.display="none";return}
+  if(action==="copy"){
+    // Copy qua menu chuột phải cũng ghi clipboard thật để Ctrl+V nhận đúng nguồn.
+    let copied=false;
+    try{copied=document.execCommand("copy")}catch(_){}
+    if(!copied&&copySceneSelection()){
+      sceneClipboardMarker=SCENE_CLIP_PREFIX+uid("");
+      // Bản dự phòng cho trình duyệt không hỗ trợ execCommand.
+      navigator.clipboard?.writeText(sceneClipboardMarker).catch(()=>toast("Dùng menu 'Dán vật trong Scene' nếu clipboard bị chặn"));
+    }
+    $("#ctx").style.display="none";return;
+  }
   if(action==="paste"){pasteSceneClipboard();$("#ctx").style.display="none";return}
   if(action==="duplicate"){
     if(copySceneSelection())pasteSceneClipboard();
@@ -2800,13 +2831,10 @@ document.addEventListener("keydown",e=>{
   if(mod&&e.key.toLowerCase()==="y"&&!isTypingTarget(e.target)){
     e.preventDefault();redo();return;
   }
-  if(mod&&e.key.toLowerCase()==="c"&&!isTypingTarget(e.target)){
-    if(copySceneSelection())e.preventDefault();
-    return;
-  }
-  if(mod&&e.key.toLowerCase()==="v"&&!isTypingTarget(e.target)&&sceneClipboard?.length){
-    e.preventDefault();pasteSceneClipboard();return;
-  }
+  // Ctrl/Cmd+C: để browser phát sự kiện copy và ghi marker nội bộ vào clipboard thật.
+  // Ctrl/Cmd+V: KHÔNG chặn tại keydown. Paste event sẽ kiểm tra ảnh/marker thực tế.
+  // Nếu chặn tại đây, clipboard Scene cũ sẽ chiếm quyền của ảnh copy từ ngoài.
+
   if((e.key==="Backspace"||e.key==="Delete")&&!isTypingTarget(e.target)){
     if(deleteSelectedObjects())e.preventDefault();
   }
