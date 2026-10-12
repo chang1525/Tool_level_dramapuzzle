@@ -186,6 +186,10 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 .sgv3Edge{fill:none;stroke:#716978;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.sgv3Edge.opening{stroke:#35a871}.sgv3Edge.or{stroke:#b08a27;stroke-dasharray:7 5}.sgv3Edge.reveal{stroke:#df6d8e;stroke-width:2;stroke-dasharray:6 5}.sgv3EndLine{stroke:#83a994;stroke-width:2;stroke-dasharray:5 5;fill:none}.sgv3EndLabel{font-size:9px;font-weight:900;fill:#5d7f6d}
 @media(max-width:1120px){.sgv3Main{grid-template-columns:1fr}.sgv3Side{min-height:0;max-height:none}}
 
+/* Các trường GD phải điền / xác nhận: chấm đỏ + chữ đỏ, không dùng chấm xanh. */
+label.requiredField{color:#bf2544!important;font-weight:900}
+.requiredMark{color:#dc2548;font-weight:1000;font-size:15px;vertical-align:baseline;margin-right:3px}
+.requiredHeader{color:#bf2544;font-weight:950}
 /* Project safety: cảnh báo độc lập với bản nháp tự lưu của trình duyệt */
 .projectSaveStatus{font-size:11px;line-height:1.45;font-weight:800;color:#97621d;margin-top:3px;max-width:370px}
 .projectSaveStatus.saved{color:#227d54}.projectSaveStatus.failed{color:#b0434f}
@@ -282,7 +286,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
   </div>
 </main>
 
-<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
+<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend"><span class="requiredHeader">● Bắt buộc</span> · 🟡 Khi cần · 🔵 Tùy chọn</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
 </div>
 </div>
 
@@ -333,7 +337,7 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
           <div class="row"><b style="font-size:13px">AI PROMPT</b><div class="spacer"></div><button class="btn" id="copyEndingPrompt">Copy AI Prompt</button></div>
           <div class="promptBox" id="endingPromptPreview"></div>
 
-          <label>🔵 Ending Image · GD gen AI</label>
+          <label class="requiredField"><span class="requiredMark">●</span> Ending Image · GD gen AI</label>
           <div class="endingImageInput" id="endingImagePaste" tabindex="0" title="Click vào đây rồi dán ảnh">
             <div><b>Click vào khung rồi dán ảnh bằng Ctrl/Cmd+V</b><br><span class="small">hoặc Import PNG/JPG · khuyên dùng 4:3</span>
               <div class="row" style="justify-content:center;flex-wrap:wrap;margin-top:7px">
@@ -345,13 +349,13 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
           </div>
           <div class="small">Ảnh này do GD tạo bằng AI, dán/import vào Tool để kiểm tra popup Ending. LƯU PROJECT sẽ lưu kèm ảnh.</div>
 
-          <label>🔵 Ending Line<input id="endingLineInput" maxlength="100" placeholder="English · 6–12 words · recap + punchline"></label>
+          <label class="requiredField"><span class="requiredMark">●</span> Ending Line<input id="endingLineInput" maxlength="100" placeholder="English · 6–12 words · recap + punchline"></label>
           <div class="endCounter" id="endingLineCounter"></div>
           <div class="small">1 câu tiếng Anh ngắn, vừa recap vừa có punchline. Có thể dùng token <b>{M01}</b>, <b>{F02}</b> nếu cần đảo tên.</div>
 
-          <div class="head" style="margin-bottom:3px"><b>🔵 PLAYER VERDICT ×2</b><span class="small">2–3 từ tiếng Anh</span></div>
+          <div class="head" style="margin-bottom:3px"><b class="requiredHeader"><span class="requiredMark">●</span> PLAYER VERDICT ×2</b><span class="small">2–3 từ tiếng Anh</span></div>
           <div class="verdictGrid" id="verdictSuggestions"></div>
-          <label>🔵 Tự nhập / chỉnh Verdict CTA<input id="verdictCustom" maxlength="40" placeholder="VD: CALL THEM OUT"></label>
+          <label class="requiredField"><span class="requiredMark">●</span> Tự nhập / chỉnh Verdict CTA<input id="verdictCustom" maxlength="40" placeholder="VD: CALL THEM OUT"></label>
           <div class="endCounter" id="verdictCounter"></div>
           <div class="small">Tiếng Việt chỉ để GD hiểu gợi ý. Trên game chỉ hiện tiếng Anh. Dùng từ đơn giản, có cảm xúc, không hứa thêm content/gameplay không tồn tại.</div>
         </div>
@@ -655,6 +659,7 @@ function blankLevelArt(){
   return {
     backgroundAssetId:"BG01",
     backgroundDescription:"",
+    storyContext:"",
     tone:"",
     artistNote:"",
     referenceNote:"",
@@ -832,6 +837,7 @@ function normalize(d){
   d.level.ending.rewardCoins=ENDING_REWARD_COINS;
   d.level.ending.normalRewardCoins=ENDING_NORMAL_COINS;
   d.level.art={...blankLevelArt(),...(d.level.art||{})};
+  d.level.art.storyContext=String(d.level.art.storyContext||"");
   d.level.art.backgroundAssetId=d.level.art.backgroundAssetId||"BG01";
   d.level.art.sceneItems=Array.isArray(d.level.art.sceneItems)?d.level.art.sceneItems:[];
   d.level.art.sceneItems.forEach(item=>{
@@ -1724,8 +1730,8 @@ function levelIns(b){
   const art=data.level.art;
   b.innerHTML=`<div class="group col">
     <div class="row">
-      <label style="flex:1">Level ID<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
-      <label style="flex:1">🟢 Độ khó GD dự định
+      <label class="requiredField" style="flex:1"><span class="requiredMark">●</span> Level ID<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
+      <label class="requiredField" style="flex:1"><span class="requiredMark">●</span> Độ khó GD dự định
         <select id="ldiffTarget">
           <option value="">-- Chọn --</option>
           <option value="EASY" ${data.level.difficultyTarget==="EASY"?"selected":""}>DỄ</option>
@@ -1735,10 +1741,10 @@ function levelIns(b){
       </label>
     </div>
     <div class="small">Chọn độ khó dự định ngay từ đầu để GD thiết kế theo. TEST ĐỘ KHÓ chỉ là bước kiểm tra lại sau Full Play và không tự đổi mục tiêu này.</div>
-    <label>🟢 Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
     <div class="tokenPreview"><b>Hook preview:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
     <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả Character vào một slot hợp lệ nhưng sai người; thả hụt ngoài slot không mất mạng. Đây là rule chung, GD không chỉnh theo từng level.</div>
-    <label>🟡 Main Reveal · Cách sử dụng
+    <label class="requiredField"><span class="requiredMark">●</span> Main Reveal · Cách sử dụng
       <select id="lrevealMode">
         <option value="UNSET">-- Chưa xác nhận --</option>
         <option value="SELECTED">Có · Reveal khi đủ những M được chọn</option>
@@ -1747,9 +1753,9 @@ function levelIns(b){
       </select>
     </label>
     <div class="small">Nên dùng Main Reveal để tạo cao trào. Level <b>Vừa / Khó bắt buộc có</b>; level <b>Dễ có thể không dùng</b> nếu Scene và Reaction đã kể đủ chuyện.</div>
-    <label>🟡 Main Reveal · Nội dung<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
+    <label class="${data.level.revealMode==="NONE"?"":"requiredField"}">${data.level.revealMode==="NONE"?"":'<span class="requiredMark">●</span> '}Main Reveal · Nội dung<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
     <div class="tokenPreview"><b>Reveal preview:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
-    <label>🟡 Main Reveal khi · chọn M nếu chế độ "Có · chọn M"</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
+    <label class="${data.level.revealMode==="SELECTED"?"requiredField":""}">${data.level.revealMode==="SELECTED"?'<span class="requiredMark">●</span> ':""}Main Reveal khi · chọn M nếu chế độ "Có · chọn M"</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
     <div class="small" id="revealTriggerHint">Chỉ chọn <b>Movable (Mxx)</b>. Chế độ "Tất cả M" sẽ tự theo danh sách Movable, kể cả khi GD thêm/bớt nhân vật.</div>
     <label>🟡 Main Reveal nằm dưới Clue
       <select id="lrparent"><option value="">— Không có parent —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
@@ -1760,8 +1766,12 @@ function levelIns(b){
   </div>
 
   <details class="group prodDetails" open><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
-    <div class="row"><label style="width:120px">Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Item</button></div>
+    <div class="row"><label class="requiredField" style="width:120px"><span class="requiredMark">●</span> Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Item</button></div>
     <label>🔵 Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Tóm tắt câu chuyện, bối cảnh & không khí cho Art (xuất vào cả 2 tab Asset Request)
+      <textarea id="bgStoryContext" rows="5" placeholder="VD: Tại tiệc cưới, {M01} phát hiện {M02} đang giấu một chuyện. Không khí vui tươi nhưng hơi căng thẳng, hài hước; các nhân vật bên ngoài chưa biết bí mật.">${esc(art.storyContext||"")}</textarea>
+    </label>
+    <div class="small">Viết 2–5 câu: chuyện gì đang diễn ra, bối cảnh và cảm giác Art cần truyền tải. Nhắc nhân vật bằng mã <b>{M01}, {F01}</b> (hoặc M01, F01), <b>không ghi tên riêng</b>. Asset Request đưa nội dung này vào dòng Background của tab 1 và tab Scene của tab 2; giữ nguyên mã, không đổi sang tên random.</div>
     <label>🔵 Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
     <label>🔵 Tone màu<input id="bgTone" value="${esc(art.tone)}" placeholder="VD: ấm, pastel, cưới ngoài trời..."></label>
     <label>🔵 Reference / chỉ dẫn reference<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
@@ -1799,6 +1809,7 @@ function levelIns(b){
   bindChecks($("#lrw"),a=>{data.level.revealWhen=a;save();renderLogic()});
   $("#lrparent").onchange=e=>{data.level.revealParentClueId=e.target.value;save()};
 
+  $("#bgStoryContext").oninput=e=>{art.storyContext=e.target.value;save()};
   $("#bgDesc").oninput=e=>{art.backgroundDescription=e.target.value;save()};
   $("#bgTone").oninput=e=>{art.tone=e.target.value;save()};
   $("#bgRef").oninput=e=>{art.referenceNote=e.target.value;save()};
@@ -1845,34 +1856,34 @@ function charIns(b,c){
   ].join("");
 
   b.innerHTML=`<div class="group col">
-    <label>🟢 Mã<input id="ci" value="${c.id}"></label>
-    <label>🟢 Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
-    <label>🟢 Giới tính / Kho tên Random
+    <label class="requiredField"><span class="requiredMark">●</span> Mã<input id="ci" value="${c.id}"></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Giới tính / Kho tên Random
       <select id="cgender"><option value="">-- Chưa xác nhận --</option><option value="MALE">Nam · Kho tên Nam</option><option value="FEMALE">Nữ · Kho tên Nữ</option><option value="NEUTRAL">Neutral · Kho tên chung / thú cưng</option></select>
     </label>
-    <label>🟢 Nhóm độ tuổi<select id="cage">${ageGroupOptions(c.age)}</select></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Nhóm độ tuổi<select id="cage">${ageGroupOptions(c.age)}</select></label>
     <div class="small">Giới tính/kho tên phải được GD chọn xác nhận, kể cả Neutral. Tuổi phải chọn nhóm hoặc "Không áp dụng".</div>
     <div class="small">Khi dùng <b>Chơi lại + Đảo tên</b>, tất cả nhân vật sẽ được đổi tên theo giới tính đã chọn. <b>Tên gốc</b> vẫn là tên tạm trong Edit. Neutral dùng được cho chó, mèo hoặc nhân vật không phân biệt giới tính.</div>
-    <label>🟢 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
-    <label>🟢 Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
-    <label>🟢 Ngoại hình · Bắt buộc xác nhận
+    <label>🟡 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
+    <label>Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Ngoại hình · Bắt buộc xác nhận
       <select id="cAppearanceMode">
         <option value="UNSET">-- Chưa xác nhận --</option>
         <option value="SPECIFIC">CÓ đặc điểm nhận diện riêng (ghi bên dưới)</option>
         <option value="STANDARD">KHÔNG CẦN đặc điểm riêng · ngoại hình phổ thông</option>
       </select>
     </label>
-    <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
+    <label class="${c.appearanceMode==="SPECIFIC"?"requiredField":""}">${c.appearanceMode==="SPECIFIC"?'<span class="requiredMark">●</span> ':""}Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small" id="appearanceGuide">Nếu chọn "Không cần", Asset Request tự yêu cầu Art vẽ nhân vật phổ thông, không lấn át nhân vật đặc biệt. Enter = xuống dòng trong cùng một tag.</div>
-    <label>🟢 Reaction · Bắt buộc xác nhận
+    <label class="requiredField"><span class="requiredMark">●</span> Reaction · Bắt buộc xác nhận
       <select id="cReactionMode">
         <option value="UNSET">-- Chưa xác nhận --</option>
         <option value="YES">CÓ Reaction cho nhân vật này</option>
         <option value="NO">KHÔNG CẦN Reaction cho nhân vật này</option>
       </select>
     </label>
-    <label>🟢 Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
-    ${c.type==="F"?`<div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">🟢 Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
+    <label class="requiredField"><span class="requiredMark">●</span> Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
+    ${c.type==="F"?`<div class="row"><label style="flex:1">Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
     <div class="small"><b>AUTO</b> tự tính hướng từ vị trí Character tới Target. Initial State là information player thấy ngay từ START.</div>`:""}
     ${c.type==="M"?`<div class="small">Movable luôn có cả trên Scene và Tray trong Edit. <b>Vị trí trên Scene chính là đáp án.</b></div>`:""}
   </div>
@@ -1943,21 +1954,21 @@ function clueIns(b,c){
     </label>
 
     ${isRoot
-      ? `<div class="small"><b>🟢 Root clue:</b> có sẵn ngay từ START.</div>`
+      ? `<div class="small"><b>Root clue:</b> có sẵn ngay từ START.</div>`
       : `<label>🟡 Trước khi mở<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa</option><option value="HIDDEN">Ẩn — không hiện gì</option></select></label>`
     }
 
-    <label>🟢 Nội dung<textarea id="qt">${esc(c.text)}</textarea></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Nội dung<textarea id="qt">${esc(c.text)}</textarea></label>
 
     <div class="row">
       <select id="tokenChar" style="flex:1">${opts("",true)}</select>
-      <button class="btn" id="insertToken" style="white-space:nowrap">🟢 + Tên Character</button>
+      <button class="btn" id="insertToken" style="white-space:nowrap">+ Tên Character</button>
     </div>
-    <button class="btn" id="tokenizeNames">🟢 Nhận diện tên tạm đã gõ → token</button>
+    <button class="btn" id="tokenizeNames">Nhận diện tên tạm đã gõ → token</button>
     <div class="small">Data lưu dạng <b>{M01}</b>; preview/player sẽ tự đổi thành tên hiện tại.</div>
     <div class="tokenPreview"><b>Preview:</b> <span id="cluePreview">${esc(resolveTokens(c.text,editNameMap()))}</span></div>
 
-    <label>🟢 Clue hoàn tất khi (AND)</label>
+    <label class="requiredField"><span class="requiredMark">●</span> Clue hoàn tất khi (AND)</label>
     <div id="qrw" class="checks">${placementTriggerChecks(c.resolveWhen)}</div>
     <div class="small">Chỉ chọn <b>Movable (Mxx)</b>. Field này chỉ dùng để <b>tick/mờ clue</b> và mở clue con; không dùng để nói clue đang solve ai.</div>
 
@@ -2008,7 +2019,7 @@ function reactionIns(b,charId,eventId){
   b.innerHTML=`<div class="group col">
     <div><b style="font-size:12px">${c.id} · REACTION EVENT ${idx+1}</b></div>
 
-    <label>🟢 WHEN / Trigger
+    <label class="requiredField"><span class="requiredMark">●</span> WHEN / Trigger
       <select id="evTrigger">
         ${c.type==="M"?'<option value="SELF_PLACED">Bản thân được đặt đúng</option>':""}
         <option value="CHAR_PLACED">Một Character khác được đặt đúng</option>
@@ -2020,9 +2031,9 @@ function reactionIns(b,charId,eventId){
 
     <div class="small"><b>Reaction mới cắt sequence cũ</b> của cùng Character và chạy ngay.</div>
 
-    <div class="head" style="margin-top:8px"><b>🟢 Sequence</b><button class="btn" id="addStep">+ Step</button></div>
+    <div class="head" style="margin-top:8px"><b class="requiredHeader"><span class="requiredMark">●</span> Sequence</b><button class="btn" id="addStep">+ Step</button></div>
     <div id="stepList"></div>
-    <label>🟢 Giữ lại sau khi chạy hết Reaction
+    <label class="requiredField"><span class="requiredMark">●</span> Giữ lại sau khi chạy hết Reaction
       <select id="evSettleStep"></select>
     </label>
     <div class="small">Chạy đủ các Step theo thời gian, rồi chuyển về biểu cảm ban đầu hoặc Step đã chọn. Giữ trạng thái này đến Reaction tiếp theo.</div>
@@ -2037,10 +2048,10 @@ function reactionIns(b,charId,eventId){
   const renderTriggerConfig=()=>{
     const box=$("#triggerConfig");
     if(ev.triggerType==="CHAR_PLACED"){
-      box.innerHTML=`<label>🟢 Character gây trigger<select id="evOne">${opts(ev.triggerChars?.[0]||"",true,movableFilter)}</select></label>`;
+      box.innerHTML=`<label class="requiredField"><span class="requiredMark">●</span> Character gây trigger<select id="evOne">${opts(ev.triggerChars?.[0]||"",true,movableFilter)}</select></label>`;
       $("#evOne").onchange=e=>{ev.triggerChars=e.target.value?[e.target.value]:[];save();renderLists();renderLogic()};
     }else if(ev.triggerType==="ALL_PLACED"){
-      box.innerHTML=`<label>🟢 Các Character phải đã đặt đúng</label><div id="evMany" class="checks">${checks(ev.triggerChars||[],movableFilter)}</div>`;
+      box.innerHTML=`<label class="requiredField"><span class="requiredMark">●</span> Các Character phải đã đặt đúng</label><div id="evMany" class="checks">${checks(ev.triggerChars||[],movableFilter)}</div>`;
       bindChecks($("#evMany"),a=>{ev.triggerChars=a;save();renderLists();renderLogic()});
     }else{
       box.innerHTML=`<div class="small">Trigger chính là ${c.id} được đặt đúng.</div>`;
@@ -2050,21 +2061,21 @@ function reactionIns(b,charId,eventId){
   const renderSteps=()=>{
     $("#stepList").innerHTML=ev.steps.map((st,i)=>`<div class="stateCard" style="cursor:default;margin-bottom:7px">
       <div class="row" style="justify-content:space-between"><b>STEP ${i+1}</b></div><div class="meta">${reactionPreview(st,c.id)} · ${esc(gazeClockText(c.id,st))}</div>
-      <label>🔵 Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
+      <label class="requiredField"><span class="requiredMark">●</span> Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
 
       <div class="row">
-        <label style="flex:1">🟢 Biểu cảm<select data-step-emotion="${st.id}">${emojiOptions(st.emotion)}</select></label>
-        <label style="flex:1">🟢 Biểu tượng<select data-step-symbol="${st.id}">${symbolOptions(st.symbol)}</select></label>
+        <label class="requiredField" style="flex:1"><span class="requiredMark">●</span> Biểu cảm<select data-step-emotion="${st.id}">${emojiOptions(st.emotion)}</select></label>
+        <label style="flex:1">Biểu tượng<select data-step-symbol="${st.id}">${symbolOptions(st.symbol)}</select></label>
       </div>
 
       <div class="row">
-        <label style="flex:1">🟢 Hướng mắt<select data-step-gaze="${st.id}">${GAZES.map(g=>`<option value="${g}" ${g===st.gaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label>
-        <label style="flex:1">🟢 Target nhìn<select data-step-target="${st.id}">${opts(st.target,true)}</select></label>
+        <label style="flex:1">Hướng mắt<select data-step-gaze="${st.id}">${GAZES.map(g=>`<option value="${g}" ${g===st.gaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label>
+        <label class="${st.gaze==="AUTO"?"requiredField":""}" style="flex:1">${st.gaze==="AUTO"?'<span class="requiredMark">●</span> ':""}Target nhìn<select data-step-target="${st.id}">${opts(st.target,true)}</select></label>
       </div>
 
       <div class="small"><b>AUTO</b> tự đo vị trí Source → Target và quy về hướng đồng hồ. Có thể chọn 1–12 giờ để override thủ công. Asset Request sẽ ghi hướng đồng hồ đã resolve.</div>
 
-      <label>🟢 Thời gian (giây)<input data-step-duration="${st.id}" type="number" min="0.1" step="0.1" value="${st.duration}"></label>
+      <label class="requiredField"><span class="requiredMark">●</span> Thời gian (giây)<input data-step-duration="${st.id}" type="number" min="0.1" step="0.1" value="${st.duration}"></label>
 
       <div class="row">
         <button class="btn" data-step-up="${st.id}">↑</button>
@@ -3246,7 +3257,7 @@ function resolvedAssetRows(){
   const art=data.level.art||blankLevelArt();
   const refs=[...(data.images||[])].map(i=>i.name).filter(Boolean).join(" | ");
   const baked=(art.sceneItems||[]).filter(x=>x.exportMode==="BAKED_BG").map(x=>[x.name,x.description,x.artistNote].filter(Boolean).join(": ")).filter(Boolean).join(" | ");
-  rows.push({assetId:art.backgroundAssetId||"BG01",file:`Background/${art.backgroundAssetId||"BG01"}.png`,group:"BACKGROUND",character:"",gender:"",age:"",state:"MAIN",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:[art.backgroundDescription,baked].filter(Boolean).join(" | "),artistNote:art.artistNote,tone:art.tone,exportMode:"BACKGROUND",reference:[art.referenceNote,refs].filter(Boolean).join(" | ")});
+  rows.push({assetId:art.backgroundAssetId||"BG01",file:`Background/${art.backgroundAssetId||"BG01"}.png`,group:"BACKGROUND",character:"",gender:"",age:"",state:"MAIN",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:[art.backgroundDescription,baked].filter(Boolean).join(" | "),artistNote:[art.storyContext?"TÓM TẮT CÂU CHUYỆN & KHÔNG KHÍ: "+art.storyContext:"",art.artistNote].filter(Boolean).join("\n\n"),tone:art.tone,exportMode:"BACKGROUND",reference:[art.referenceNote,refs].filter(Boolean).join(" | ")});
   (art.sceneItems||[]).filter(x=>x.exportMode!=="BAKED_BG").forEach(x=>rows.push({assetId:x.assetId,file:`Background/${x.assetId}.png`,group:x.exportMode==="FOREGROUND"?"FOREGROUND":"OBJECT",character:"",gender:"",age:"",state:x.name||"",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:x.description,artistNote:x.artistNote,tone:art.tone,exportMode:x.exportMode,reference:art.referenceNote||refs}));
   sortedCharacters().forEach(c=>{
     ensureCharacterAssetIds(c);
@@ -3340,6 +3351,26 @@ function buildRuntimeData(){
     }
   };
 }
+function validateArtStoryContext(){
+  const errors=[],story=String(data.level.art?.storyContext||"").trim();
+  const characterIds=new Set(sortedCharacters().map(c=>c.id));
+  if(!story){
+    errors.push({code:"ART_STORY_CONTEXT",text:"Thiếu tóm tắt câu chuyện, bối cảnh và không khí cho Art."});
+    return errors;
+  }
+  clueTokenIds(story).forEach(id=>{
+    if(!characterIds.has(id))errors.push({code:"ART_STORY_TOKEN",text:`Tóm tắt Art có mã {${id}} không tồn tại.`});
+  });
+  // Accept both {M01} and plain M01, but not an unknown code or a character's real name.
+  const plainIds=[...new Set((story.match(/\b[MF]\d{2,}\b/g)||[]))];
+  plainIds.forEach(id=>{
+    if(!characterIds.has(id))errors.push({code:"ART_STORY_ID",text:`Tóm tắt Art nhắc ${id} nhưng mã không có trong level.`});
+  });
+  if(tokenizeKnownNames(story)!==story){
+    errors.push({code:"ART_STORY_NAME",text:"Tóm tắt Art đang viết tên nhân vật trực tiếp. Hãy dùng mã M01, {M01}, F01… thay vì tên riêng."});
+  }
+  return errors;
+}
 function runPreflightCheck(includeProduction=false){
   save();
   const errors=[],warnings=[],charIds=new Set(sortedCharacters().map(c=>c.id));
@@ -3352,7 +3383,8 @@ function runPreflightCheck(includeProduction=false){
 
   if(!String(data.level.id||"").trim())addErr("LEVEL_ID","Thiếu Level ID (VD: L001).");
   else if(!/^L\d{3,}$/.test(String(data.level.id||""))||Number(String(data.level.id).slice(1))<1)addErr("LEVEL_ID_FORMAT","Level ID phải có ít nhất 3 chữ số và lớn hơn 0 (VD: L001, L012, L100).");
-  if(includeProduction&&!String(data.level.version||"").trim())addErr("VERSION","Thiếu Version.");
+  if(!String(data.level.version||"").trim())addErr("VERSION","Thiếu Version.");
+  validateArtStoryContext().forEach(x=>addErr(x.code,x.text));
   if(!["EASY","MEDIUM","HARD"].includes(data.level.difficultyTarget))addErr("DIFFICULTY_TARGET","Chưa chọn Độ khó GD dự định.");
   if(!String(data.level.hook||"").trim())addErr("HOOK","Thiếu Drama Hook.");
   const revealMode=data.level.revealMode||"UNSET";
@@ -3369,6 +3401,7 @@ function runPreflightCheck(includeProduction=false){
   if((data.clues||[]).length&&!(data.clues||[]).some(c=>!c.parent))addErr("CLUE_ROOT","Level không có Root Clue có sẵn lúc START.");
   if(!(data.characters||[]).some(c=>(c.reactionEvents||[]).length))addErr("REACTION_LEVEL","Level phải có ít nhất 1 Reaction Event.");
   if(!String(data.level.ending?.imageSrc||"").trim())addErr("ENDING_IMAGE","Chưa thêm Ending Image do GD gen AI vào tab ENDING.");
+  validateEndingData().forEach(x=>addErr("ENDING",`Ending: ${x}.`));
   if(!String(data.level.art?.backgroundDescription||"").trim())addWarn("BG_DESC","Mô tả background đang trống.");
   const nMovable=movableCount();
   if(data.level.difficultyTested){
@@ -3484,7 +3517,7 @@ function runPreflightCheck(includeProduction=false){
     const unusedByRuntime=[...requestAssetIds].filter(id=>id&&!runtimeAssetIds.has(id));
     if(missingFromArt.length)addErr("ASSET_CONTRACT_DEV_TO_ART",`Dev JSON gọi asset chưa có trong Asset Request: ${missingFromArt.join(", ")}.`);
     if(unusedByRuntime.length)addErr("ASSET_CONTRACT_ART_TO_DEV",`Asset Request có asset mà Dev JSON không dùng: ${unusedByRuntime.join(", ")}.`);
-    const endErrors=validateEndingData();endErrors.forEach(x=>addErr("ENDING",`Ending: ${x}.`));
+    // Ending line và CTA đã được kiểm ở CHECK chung, không lặp lỗi.
 
   }
 
@@ -3518,12 +3551,13 @@ function xlsxCell(v,row,col,style=0){
   if(typeof v==="number"&&Number.isFinite(v))return `<c r="${ref}"${style?` s="${style}"`:""}><v>${v}</v></c>`;
   return `<c r="${ref}" t="inlineStr"${style?` s="${style}"`:""}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
 }
-function makeXlsxSheet(rows,widths=[],merges=[],boldRows=[],wrapNotes=false){
+function makeXlsxSheet(rows,widths=[],merges=[],boldRows=[],wrapNotes=false,storyRow=0){
   const cols=widths.length?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";
   const sheetRows=rows.map((row,ri)=>{
     const standardNote=wrapNotes&&String(row[13]||"").includes("NHÂN VẬT PHỔ THÔNG");
-    const ht=ri===0?' ht="24" customHeight="1"':standardNote?' ht="76" customHeight="1"':'';
-    return `<row r="${ri+1}"${ht}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,(ri===0||boldRows.includes(ri+1))?1:(wrapNotes&&(ci===12||ci===13)?2:0))).join("")}</row>`;
+    const backgroundStory=wrapNotes&&String(row[13]||"").includes("TÓM TẮT CÂU CHUYỆN");
+    const ht=(storyRow&&ri+1===storyRow)?' ht="108" customHeight="1"':ri===0?' ht="24" customHeight="1"':backgroundStory?' ht="134" customHeight="1"':standardNote?' ht="76" customHeight="1"':'';
+    return `<row r="${ri+1}"${ht}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,(ri===0||boldRows.includes(ri+1)||(storyRow&&ri+1===storyRow&&ci===0))?1:((wrapNotes&&(ci===12||ci===13))||(storyRow&&ri+1===storyRow&&ci===1)?2:0))).join("")}</row>`;
   }).join("");
   const mergeXml=merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join("")}</mergeCells>`:"";
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"/></sheetViews>${cols}<sheetData>${sheetRows}</sheetData>${mergeXml}</worksheet>`;
@@ -3549,6 +3583,14 @@ function zipStore(files){
 }
 function exportAssetRequest(){
   save();
+  const storyErrors=validateArtStoryContext();
+  if(storyErrors.length){
+    selected={type:"level",id:"level"};renderInspector();
+    renderPreflightCheck({errors:storyErrors,warnings:[],production:true});
+    $("#checkOverlay").classList.add("show");
+    toast("Tóm tắt câu chuyện cho Art chưa hợp lệ — sửa trước khi xuất Asset Request");
+    return;
+  }
   const v=validateAssetData();
   if(v.missing||v.dups.length){toast(`Asset ID lỗi: ${v.missing?"thiếu "+v.missing:""}${v.dups.length?" · trùng "+v.dups.join(", "):""}`);return}
   const headers=["Asset ID","File","Group","Character","Gender","Age","State","Emoji","Tên biểu cảm","Symbol","Target","Gaze Clock","Description / Appearance","Artist Note","Tone màu","Export Mode","Reference"];
@@ -3566,7 +3608,7 @@ function exportAssetRequest(){
     ["Kích thước", "1080 × 1610 / ảnh"],
     ["START", "Chỉ Fixed + background/ảnh/shape được bật Hiện trong Play, gồm cả slot ? nếu có."],
     ["SOLVED", "Tất cả Fixed + Movable đúng chỗ; chỉ thể hiện bố cục, reaction cuối có thể phụ thuộc thứ tự chơi."],
-    [""], [""], [""], [""], [""],
+    ["CÂU CHUYỆN & KHÔNG KHÍ", data.level.art?.storyContext||""], [""], [""], [""], [""],
     ["", "DÁN ẢNH SCENE START VÀO DƯỚI NÀY", "DÁN ẢNH SCENE SOLVED VÀO DƯỚI NÀY"],
     [""],
     ...Array.from({length:33},()=>["", "", ""])
@@ -3578,7 +3620,7 @@ function exportAssetRequest(){
     "xl/_rels/workbook.xml.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
     "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
     "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,42,48,22,18,34],[],[],true),
-    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9"],[15])
+    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9","B10:C13"],[15],false,10)
   };
   const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${base}_ASSET_REQUEST.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
