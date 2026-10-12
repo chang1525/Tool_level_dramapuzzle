@@ -502,7 +502,8 @@ Keep the background simple and only support the main drama moment.`}
 
 // Nhóm tuổi dành cho production Art; giá trị mã ổn định, nhãn hiển thị dễ hiểu.
 const AGE_GROUPS=[
-  ["", "Chưa xác định / không áp dụng"],
+  ["", "-- Chưa chọn nhóm tuổi --"],
+  ["NOT_APPLICABLE", "Không áp dụng (thú cưng / phi nhân vật)"],
   ["BABY", "Em bé (0–2 tuổi)"],
   ["TODDLER", "Trẻ nhỏ (3–5 tuổi)"],
   ["CHILD", "Trẻ em (6–12 tuổi)"],
@@ -539,6 +540,12 @@ function normalizeAgeGroup(value){
   if(/cao tuổi|người già|lớn tuổi/i.test(s))return "SENIOR";
   if(/trẻ con|trẻ em/i.test(s))return "CHILD";
   return s; // Không đoán với mô tả tuổi cũ chưa rõ nghĩa.
+}
+function effectiveRevealWhen(){
+  const m=data.level.revealMode;
+  if(m==="NONE")return [];
+  if(m==="ALL")return sortedCharacters().filter(c=>c.type==="M").map(c=>c.id);
+  return data.level.revealWhen||[];
 }
 function ageGroupLabel(value){
   const k=String(value??"");
@@ -658,7 +665,7 @@ function blankSceneArtItem(){
   return {id:uid("ART_"),name:"",description:"",exportMode:"BAKED_BG",assetId:"BG01",artistNote:""};
 }
 function blank(){
-  return {level:{id:"",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[]};
+  return {level:{id:"",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealMode:"UNSET",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[]};
 }
 function blankSceneEvidence(){
   return {id:"",text:"",affects:[]};
@@ -801,6 +808,10 @@ function normalize(d){
   Object.defineProperty(d,"sceneEvidence",{value:[],writable:true,configurable:true,enumerable:false});
   d.annotations=d.annotations||[];
   d.level.revealWhen=d.level.revealWhen||[];
+  // Project cũ có Reveal hoàn chỉnh được nhận diện; Project cũ không có Reveal cần GD chọn rõ.
+  if(!["UNSET","SELECTED","ALL","NONE"].includes(d.level.revealMode)){
+    d.level.revealMode=(String(d.level.reveal||"").trim() || d.level.revealWhen.length)?"SELECTED":"UNSET";
+  }
   d.level.revealParentClueId=String(d.level.revealParentClueId||"").trim().toUpperCase();
   d.level.difficultyTarget=["EASY","MEDIUM","HARD"].includes(d.level.difficultyTarget)?d.level.difficultyTarget:"";
   d.level.difficultySelf=["EASY","MEDIUM","HARD"].includes(d.level.difficultySelf)?d.level.difficultySelf:"";
@@ -840,6 +851,9 @@ function normalize(d){
     c.answerSet=true;
     c.appearance=c.appearance||[];
     delete c.sceneTag; // Scene Tag system removed in V1.15
+    c.genderConfirmed=c.genderConfirmed===true;
+    c.appearanceMode=["UNSET","SPECIFIC","STANDARD"].includes(c.appearanceMode)?c.appearanceMode:"UNSET";
+    c.reactionMode=["UNSET","YES","NO"].includes(c.reactionMode)?c.reactionMode:"UNSET";
     c.gender=inferGender(c);
     c.namePool=c.gender; // Xóa trạng thái KEEP của file cũ; tên tạm gốc vẫn giữ trong Edit.
     delete c.genderManual;
@@ -1724,10 +1738,19 @@ function levelIns(b){
     <label>🟢 Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
     <div class="tokenPreview"><b>Hook preview:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
     <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả Character vào một slot hợp lệ nhưng sai người; thả hụt ngoài slot không mất mạng. Đây là rule chung, GD không chỉnh theo từng level.</div>
-    <label>🟡 Main Reveal<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
+    <label>🟡 Main Reveal · Cách sử dụng
+      <select id="lrevealMode">
+        <option value="UNSET">-- Chưa xác nhận --</option>
+        <option value="SELECTED">Có · Reveal khi đủ những M được chọn</option>
+        <option value="ALL">Có · Reveal khi xếp đúng tất cả M</option>
+        <option value="NONE">Không dùng · Chỉ cho level Dễ</option>
+      </select>
+    </label>
+    <div class="small">Nên dùng Main Reveal để tạo cao trào. Level <b>Vừa / Khó bắt buộc có</b>; level <b>Dễ có thể không dùng</b> nếu Scene và Reaction đã kể đủ chuyện.</div>
+    <label>🟡 Main Reveal · Nội dung<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
     <div class="tokenPreview"><b>Reveal preview:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
-    <label>🟡 Main Reveal khi</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
-    <div class="small">Chỉ chọn <b>Movable (Mxx)</b>, vì Fixed đã có sẵn trên scene và không có placement event.</div>
+    <label>🟡 Main Reveal khi · chọn M nếu chế độ "Có · chọn M"</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
+    <div class="small" id="revealTriggerHint">Chỉ chọn <b>Movable (Mxx)</b>. Chế độ "Tất cả M" sẽ tự theo danh sách Movable, kể cả khi GD thêm/bớt nhân vật.</div>
     <label>🟡 Main Reveal nằm dưới Clue
       <select id="lrparent"><option value="">— Không có parent —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
     </label>
@@ -1759,6 +1782,14 @@ function levelIns(b){
     </div>`).join("")||'<div class="small">Chưa có item background/prop.</div>'}</div>
   </div></details>`;
 
+  $("#lrevealMode").value=data.level.revealMode||"UNSET";
+  const updateRevealModeView=()=>{
+    $("#lrw").style.opacity=data.level.revealMode==="SELECTED"?"1":".42";
+    $("#lrw").style.pointerEvents=data.level.revealMode==="SELECTED"?"auto":"none";
+    $("#revealTriggerHint").textContent=data.level.revealMode==="ALL"?"Reveal khi toàn bộ M được đặt đúng · tự cập nhật khi thêm hoặc xóa M.":data.level.revealMode==="NONE"?"Không dùng Main Reveal: chỉ hợp lệ cho level Dễ.":"Chỉ chọn Movable (Mxx); Fixed không có placement event.";
+  };
+  updateRevealModeView();
+  $("#lrevealMode").onchange=e=>{data.level.revealMode=e.target.value;save();updateRevealModeView();renderLogic()};
   $("#lid").oninput=e=>{data.level.id=e.target.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"");e.target.value=data.level.id;save();$("#liveName").textContent=data.level.id||"LEVEL"};
   $("#lver").oninput=e=>{data.level.version=e.target.value.trim();save()};
   $("#ldiffTarget").onchange=e=>{data.level.difficultyTarget=e.target.value;data.level.difficultyTested=false;save()};
@@ -1797,7 +1828,7 @@ function charIns(b,c){
       ((ev.triggerType==="CHAR_PLACED"||ev.triggerType==="ALL_PLACED")&&(ev.triggerChars||[]).includes(c.id));
     if(triggered)triggeredReactions.push({src,ev,i});
   }));
-  const revealByChar=(data.level.revealWhen||[]).includes(c.id);
+  const revealByChar=effectiveRevealWhen().includes(c.id);
   const relCardClue=(q,meta)=>`<div class="stateCard relCard" data-rel-clue="${q.id}"><b>${esc(q.id)} · ${esc(resolveTokens(q.text||"(draft)",editNameMap()))}</b><div class="meta">${esc(meta)}</div></div>`;
   const relCardRx=(x,meta)=>`<div class="stateCard relCard" data-rel-rx="${x.src.id}|${x.ev.id}"><b>${esc(x.src.id)} · Reaction ${x.i+1}</b><div class="meta">${esc(meta)} · ${esc(triggerLabel(x.src,x.ev))}</div></div>`;
   const incomingHtml=mentionedClues.map(q=>relCardClue(q,"Clue có nhắc "+c.id)).join("")||'<div class="relEmpty">Không có clue text nào nhắc trực tiếp Character này. Có thể logic đến từ visual / ngoại hình / loại trừ.</div>';
@@ -1817,14 +1848,29 @@ function charIns(b,c){
     <label>🟢 Mã<input id="ci" value="${c.id}"></label>
     <label>🟢 Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
     <label>🟢 Giới tính / Kho tên Random
-      <select id="cgender"><option value="MALE">Nam · Kho tên Nam</option><option value="FEMALE">Nữ · Kho tên Nữ</option><option value="NEUTRAL">Neutral · Kho tên chung / thú cưng</option></select>
+      <select id="cgender"><option value="">-- Chưa xác nhận --</option><option value="MALE">Nam · Kho tên Nam</option><option value="FEMALE">Nữ · Kho tên Nữ</option><option value="NEUTRAL">Neutral · Kho tên chung / thú cưng</option></select>
     </label>
     <label>🟢 Nhóm độ tuổi<select id="cage">${ageGroupOptions(c.age)}</select></label>
+    <div class="small">Giới tính/kho tên phải được GD chọn xác nhận, kể cả Neutral. Tuổi phải chọn nhóm hoặc "Không áp dụng".</div>
     <div class="small">Khi dùng <b>Chơi lại + Đảo tên</b>, tất cả nhân vật sẽ được đổi tên theo giới tính đã chọn. <b>Tên gốc</b> vẫn là tên tạm trong Edit. Neutral dùng được cho chó, mèo hoặc nhân vật không phân biệt giới tính.</div>
     <label>🟢 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
     <label>🟢 Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
+    <label>🟢 Ngoại hình · Bắt buộc xác nhận
+      <select id="cAppearanceMode">
+        <option value="UNSET">-- Chưa xác nhận --</option>
+        <option value="SPECIFIC">CÓ đặc điểm nhận diện riêng (ghi bên dưới)</option>
+        <option value="STANDARD">KHÔNG CẦN đặc điểm riêng · ngoại hình phổ thông</option>
+      </select>
+    </label>
     <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
-    <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
+    <div class="small" id="appearanceGuide">Nếu chọn "Không cần", Asset Request tự yêu cầu Art vẽ nhân vật phổ thông, không lấn át nhân vật đặc biệt. Enter = xuống dòng trong cùng một tag.</div>
+    <label>🟢 Reaction · Bắt buộc xác nhận
+      <select id="cReactionMode">
+        <option value="UNSET">-- Chưa xác nhận --</option>
+        <option value="YES">CÓ Reaction cho nhân vật này</option>
+        <option value="NO">KHÔNG CẦN Reaction cho nhân vật này</option>
+      </select>
+    </label>
     <label>🟢 Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
     ${c.type==="F"?`<div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">🟢 Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
     <div class="small"><b>AUTO</b> tự tính hướng từ vị trí Character tới Target. Initial State là information player thấy ngay từ START.</div>`:""}
@@ -1842,11 +1888,18 @@ function charIns(b,c){
   <div class="group"><div class="head" style="margin:0 0 6px"><b>Reaction Events</b><button class="btn" id="addEvent">+ Reaction</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>EVENT ${i+1} · ${ev.steps.length} step</b><div class="meta">WHEN: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có reaction.</div>'}</div></div>
   <button class="btn danger" id="cd">Xóa character</button>`;
 
-  $("#ct").value=c.type;$("#cgender").value=inferGender(c);$("#cage").value=String(c.age??"");
+  $("#ct").value=c.type;$("#cgender").value=c.genderConfirmed?inferGender(c):"";
+  $("#cage").value=String(c.age??"");
+  $("#cAppearanceMode").value=c.appearanceMode||"UNSET";
+  $("#cReactionMode").value=c.reactionMode||"UNSET";
+  $("#cAppearanceMode").onchange=e=>{c.appearanceMode=e.target.value;save();renderInspector()};
+  $("#cReactionMode").onchange=e=>{c.reactionMode=e.target.value;save()};
   $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast("Movable chỉ dùng mã Mxx, Fixed chỉ dùng mã Fxx");e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
   $("#cn").oninput=e=>{c.name=e.target.value;save();$$(`[data-char-name="${c.id}"]`).forEach(n=>n.textContent=e.target.value)};$("#cn").onchange=()=>{renderLists();renderClues();renderLive()};
   $("#cgender").onchange=e=>{
+    if(!e.target.value)return;
     c.gender=e.target.value;
+    c.genderConfirmed=true;
     c.namePool=c.gender;
     save();renderInspector();
   };
@@ -1863,7 +1916,7 @@ function charIns(b,c){
   }
   $("#cartnote").oninput=e=>{c.artistNote=e.target.value;save()};
   $$('[data-rel-clue]').forEach(el=>el.onclick=()=>{selected={type:"clue",id:el.dataset.relClue};refreshImmediate()});$$('[data-rel-rx]').forEach(el=>el.onclick=()=>{const [charId,eventId]=el.dataset.relRx.split("|");selected={type:"reaction",charId,eventId};refreshImmediate()});$$('[data-rel-level]').forEach(el=>el.onclick=()=>{selected={type:"level",id:"level"};refreshImmediate()});
-  $("#addEvent").onclick=()=>{const ev=blankReactionEvent(c.type==="M"?"SELF_PLACED":"CHAR_PLACED");c.reactionEvents.push(ev);ensureCharacterAssetIds(c);selected={type:"reaction",charId:c.id,eventId:ev.id};save();refreshImmediate()};$$('[data-event]').forEach(el=>el.onclick=()=>{selected={type:"reaction",charId:c.id,eventId:el.dataset.event};refreshImmediate()});
+  $("#addEvent").onclick=()=>{c.reactionMode="YES";const ev=blankReactionEvent(c.type==="M"?"SELF_PLACED":"CHAR_PLACED");c.reactionEvents.push(ev);ensureCharacterAssetIds(c);selected={type:"reaction",charId:c.id,eventId:ev.id};save();refreshImmediate()};$$('[data-event]').forEach(el=>el.onclick=()=>{selected={type:"reaction",charId:c.id,eventId:el.dataset.event};refreshImmediate()});
   $("#cd").onclick=()=>{deleteCharacter(c.id);multiSel.clear();selected={type:"level",id:"level"};save();refreshImmediate()};
 }
 
@@ -2215,7 +2268,7 @@ function addChar(t){
     id,name:"",role:"",type:t,answerSet:true,
     x:170+(n%5)*180,
     y:240+Math.floor(n/5)*155,
-    namePool:"NEUTRAL",appearance:[],gender:"NEUTRAL",age:"",artistNote:"",baseExpression:"😐",baseGaze:"NONE",baseTarget:"",...(t==="M"?{assetTrayId:`${id}_TRAY`}:{assetBaseId:`${id}_BASE`}),reactionEvents:[]
+    namePool:"NEUTRAL",appearance:[],gender:"NEUTRAL",genderConfirmed:false,age:"",appearanceMode:"UNSET",reactionMode:"UNSET",artistNote:"",baseExpression:"😐",baseGaze:"NONE",baseTarget:"",...(t==="M"?{assetTrayId:`${id}_TRAY`}:{assetBaseId:`${id}_BASE`}),reactionEvents:[]
   };
   data.characters.push(c);
   ensureCharacterAssetIds(c);
@@ -3076,7 +3129,7 @@ function evalRun(placedId=null,isStart=false){
 
   fireReactionEvents(placedId,isStart);
 
-  if(!play.reveal&&data.level.revealWhen.length&&data.level.revealWhen.every(id=>play.placed[id])){
+  if(!play.reveal&&effectiveRevealWhen().length&&effectiveRevealWhen().every(id=>play.placed[id])){
     play.reveal=true;
     if(data.level.reveal)toast("MAIN REVEAL · "+resolveTokens(data.level.reveal));
   }
@@ -3092,7 +3145,7 @@ function buildFlowHtml(){
   const rootHtml=roots.length?roots.map(c=>`<div class="flowCard"><span class="flowTag start">START</span><b>${esc(c.id)}</b><div class="meta">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</div>${(c.resolveWhen||[]).length?`<div class="small">Hoàn tất khi: ${esc(flowPlacedLabel(c.resolveWhen))}</div>`:""}</div>`).join(""):'<div class="flowCard"><span class="flowTag warn">⚠</span><b>Chưa có Root Clue</b><div class="meta">Player vẫn có thể dùng visual/Initial State, nhưng cần Play để chắc chắn có opening rõ.</div></div>';
   const childHtml=(data.clues||[]).filter(c=>c.parent).map(c=>`<div class="flowCard"><span class="flowTag">CLUE</span><b>${esc(c.parent)} → ${esc(c.id)}</b><div class="meta">${c.preOpen==="HIDDEN"?"Ẩn":"Khóa"} trước khi mở · Parent hoàn tất thì mở</div><div class="small">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}${(c.resolveWhen||[]).length?`<br>Hoàn tất khi: ${esc(flowPlacedLabel(c.resolveWhen))}`:""}</div></div>`).join("")||'<div class="small">Không có clue con.</div>';
   const rx=[];sortedCharacters().forEach(c=>(c.reactionEvents||[]).forEach((ev,i)=>rx.push(`<div class="flowCard"><span class="flowTag">REACTION</span><b>${esc(triggerLabel(c,ev))} → ${esc(c.id)} R${i+1}</b><div class="meta">${esc(sequencePreview(ev,c.id))}</div></div>`)));
-  const reveal=(String(data.level.reveal||"").trim()||(data.level.revealWhen||[]).length)?`<div class="flowCard"><span class="flowTag">REVEAL</span><b>${esc(flowPlacedLabel(data.level.revealWhen||[]))} → Main Reveal</b><div class="meta">${esc(resolveTokens(data.level.reveal||"(chưa nhập nội dung)",editNameMap()))}</div>${data.level.revealParentClueId?`<div class="small">Nằm dưới ${esc(data.level.revealParentClueId)}</div>`:""}</div>`:'<div class="small">Level này chưa dùng Main Reveal riêng.</div>';
+  const reveal=(String(data.level.reveal||"").trim()||effectiveRevealWhen().length)?`<div class="flowCard"><span class="flowTag">REVEAL</span><b>${esc(flowPlacedLabel(effectiveRevealWhen()))} → Main Reveal</b><div class="meta">${esc(resolveTokens(data.level.reveal||"(chưa nhập nội dung)",editNameMap()))}</div>${data.level.revealParentClueId?`<div class="small">Nằm dưới ${esc(data.level.revealParentClueId)}</div>`:""}</div>`:'<div class="small">Level này chưa dùng Main Reveal riêng.</div>';
   const movable=sortedCharacters(c=>c.type==="M").map(c=>c.id);
   return `<div class="flowSection"><h4>START · Information có sẵn</h4><div class="flowGrid">${rootHtml}</div><div class="small" style="margin-top:7px">Initial expression / gaze và visual trên Scene cũng có sẵn từ START; FLOW không bắt GD khai metadata “giúp solve ai”.</div></div><div class="flowSection"><h4>Clue mở theo Parent</h4><div class="flowGrid">${childHtml}</div></div><div class="flowSection"><h4>Reaction Trigger</h4><div class="flowGrid">${rx.join("")||'<div class="small">Không có Reaction Event.</div>'}</div></div><div class="flowSection"><h4>Main Reveal</h4><div class="flowGrid">${reveal}</div></div><div class="flowSection"><h4>Completion</h4><div class="flowCard"><span class="flowTag start">WIN</span><b>Tất cả Movable đúng</b><div class="meta">${esc(movable.join(" + ")||"Chưa có Movable")}</div></div></div><div class="sgGraphHint"><b>FLOW chỉ thể hiện state/trigger mà Tool biết chắc.</b> Nó không kết luận player đã đủ evidence hay level khó/dễ. Dùng Play + Proof / Swap / Remove để kiểm suy luận.</div>`;
 }
@@ -3197,13 +3250,16 @@ function resolvedAssetRows(){
   (art.sceneItems||[]).filter(x=>x.exportMode!=="BAKED_BG").forEach(x=>rows.push({assetId:x.assetId,file:`Background/${x.assetId}.png`,group:x.exportMode==="FOREGROUND"?"FOREGROUND":"OBJECT",character:"",gender:"",age:"",state:x.name||"",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:x.description,artistNote:x.artistNote,tone:art.tone,exportMode:x.exportMode,reference:art.referenceNote||refs}));
   sortedCharacters().forEach(c=>{
     ensureCharacterAssetIds(c);
-    const appearance=(c.appearance||[]).join(" | ");
+    const standard=c.appearanceMode==="STANDARD";
+    const standardArtNote="NHÂN VẬT PHỔ THÔNG: Không cần đặc điểm ngoại hình riêng. Vẽ ngoại hình đời thường, tóc/màu sắc/trang phục/phụ kiện tự nhiên và ít nổi bật; không lấn át nhân vật có đặc điểm nhận diện riêng. Nếu gameplay hoặc vai trò yêu cầu đồng phục, dấu hiệu nghề nghiệp thì vẫn phải giữ.";
+    const appearance=standard?"Ngoại hình phổ thông · không có đặc điểm nhận diện riêng":(c.appearance||[]).join(" | ");
+    const characterArtNote=[standard?standardArtNote:"",c.artistNote||""].filter(Boolean).join(" | ");
     const initial=initialStateRecord(c);
     const initialGaze=resolvedGazeClock(c.id,initial)?`${resolvedGazeClock(c.id,initial)} giờ`:"";
     const initialAssetId=runtimeInitialAssetId(c);
-    rows.push({assetId:initialAssetId,file:`Characters/${c.id}/${initialAssetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:c.type==="M"?"TRAY + SCENE INITIAL":"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.type==="F"?(c.baseTarget||""):"",gaze:c.type==="F"?initialGaze:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
+    rows.push({assetId:initialAssetId,file:`Characters/${c.id}/${initialAssetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:c.type==="M"?"TRAY + SCENE INITIAL":"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.type==="F"?(c.baseTarget||""):"",gaze:c.type==="F"?initialGaze:"",description:appearance,artistNote:characterArtNote,tone:"",exportMode:"FULL SPRITE",reference:""});
 
-    (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
+    (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:ageGroupLabel(c.age),state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:characterArtNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
   });
   const ending=data.level.ending||blankEnding();
   rows.push({assetId:ending.imageAssetId||"ENDING01",file:`Ending/${ending.imageAssetId||"ENDING01"}.png`,group:"ENDING",character:"",gender:"",age:"",state:"ENDING",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:ending.imageBrief||"",artistNote:"",tone:"",exportMode:"GD AI · ENDING 4:3",reference:"GD tạo ảnh AI, lưu qua tab ENDING rồi xuất ảnh riêng"});
@@ -3273,9 +3329,9 @@ function buildRuntimeData(){
     characters:chars,
     clues,
     dramaReveal:{
-      text:data.level.reveal||"",
-      parentClueId:data.level.revealParentClueId||null,
-      revealWhenPlaced:deep(data.level.revealWhen||[])
+      text:data.level.revealMode==="NONE"?"":(data.level.reveal||""),
+      parentClueId:data.level.revealMode==="NONE"?null:(data.level.revealParentClueId||null),
+      revealWhenPlaced:deep(effectiveRevealWhen())
     },
     ending:{
       imageAssetId:data.level.ending?.imageAssetId||"ENDING01",
@@ -3295,14 +3351,25 @@ function runPreflightCheck(includeProduction=false){
   if(dupClues.length)addErr("CLUE_DUP",`Trùng Clue ID: ${dupClues.join(", ")}.`);
 
   if(!String(data.level.id||"").trim())addErr("LEVEL_ID","Thiếu Level ID (VD: L001).");
-  else if(!/^L\d+$/i.test(String(data.level.id||"")))addErr("LEVEL_ID_FORMAT","Level ID phải theo dạng L001 để Dev JSON có số level rõ ràng.");
+  else if(!/^L\d{3,}$/.test(String(data.level.id||""))||Number(String(data.level.id).slice(1))<1)addErr("LEVEL_ID_FORMAT","Level ID phải có ít nhất 3 chữ số và lớn hơn 0 (VD: L001, L012, L100).");
   if(includeProduction&&!String(data.level.version||"").trim())addErr("VERSION","Thiếu Version.");
   if(!["EASY","MEDIUM","HARD"].includes(data.level.difficultyTarget))addErr("DIFFICULTY_TARGET","Chưa chọn Độ khó GD dự định.");
   if(!String(data.level.hook||"").trim())addErr("HOOK","Thiếu Drama Hook.");
-  if(String(data.level.reveal||"").trim()&&!(data.level.revealWhen||[]).length)addErr("DRAMA_REVEAL_TRIGGER","Có Main Reveal nhưng chưa chọn điều kiện revealWhenPlaced.");
-  if((data.level.revealWhen||[]).length&&!String(data.level.reveal||"").trim())addErr("DRAMA_REVEAL_TEXT","Đã có trigger Main Reveal nhưng chưa nhập nội dung Reveal.");
+  const revealMode=data.level.revealMode||"UNSET";
+  const revealTriggers=effectiveRevealWhen();
+  if(revealMode==="UNSET")addErr("REVEAL_MODE","Main Reveal chưa xác nhận cách dùng: chọn M, tất cả M, hoặc không dùng (chỉ Easy).");
+  if(revealMode==="NONE"&&data.level.difficultyTarget!=="EASY")addErr("REVEAL_REQUIRED","Level Vừa/Khó bắt buộc có Main Reveal; chỉ Easy được chọn không dùng.");
+  if(revealMode==="NONE"&&String(data.level.reveal||"").trim())addWarn("REVEAL_UNUSED","Đã chọn không dùng Main Reveal nhưng ô nội dung vẫn có chữ; nội dung này sẽ không hiện.");
+  if(revealMode==="SELECTED"&&!(data.level.revealWhen||[]).length)addErr("DRAMA_REVEAL_TRIGGER","Main Reveal chưa chọn Movable kích hoạt.");
+  if(["SELECTED","ALL"].includes(revealMode)&&!String(data.level.reveal||"").trim())addErr("DRAMA_REVEAL_TEXT","Đã chọn dùng Main Reveal nhưng chưa nhập nội dung.");
+  if(["SELECTED","ALL"].includes(revealMode)&&!revealTriggers.length)addErr("DRAMA_REVEAL_TRIGGER","Main Reveal chưa có Movable hợp lệ để kích hoạt.");
   if(data.level.revealParentClueId&&!clueIds.has(data.level.revealParentClueId))addErr("DRAMA_REVEAL_PARENT",`Main Drama Reveal đang trỏ tới Clue không tồn tại: ${data.level.revealParentClueId}.`);
   if(!sortedCharacters().some(c=>c.type==="M"))addErr("MOVABLE","Level chưa có Movable nào.");
+  if(!(data.clues||[]).length)addErr("CLUE_EMPTY","Level chưa có Clue nào.");
+  if((data.clues||[]).length&&!(data.clues||[]).some(c=>!c.parent))addErr("CLUE_ROOT","Level không có Root Clue có sẵn lúc START.");
+  if(!(data.characters||[]).some(c=>(c.reactionEvents||[]).length))addErr("REACTION_LEVEL","Level phải có ít nhất 1 Reaction Event.");
+  if(!String(data.level.ending?.imageSrc||"").trim())addErr("ENDING_IMAGE","Chưa thêm Ending Image do GD gen AI vào tab ENDING.");
+  if(!String(data.level.art?.backgroundDescription||"").trim())addWarn("BG_DESC","Mô tả background đang trống.");
   const nMovable=movableCount();
   if(data.level.difficultyTested){
     const difficultyNow=difficultyDiagnostic();
@@ -3314,15 +3381,28 @@ function runPreflightCheck(includeProduction=false){
   const seenIds=new Set();
   sortedCharacters().forEach(c=>{
     if(seenIds.has(c.id))addErr("CHAR_DUP",`Trùng Character ID: ${c.id}.`);seenIds.add(c.id);
-    if(!/^[MF]\d+$/.test(c.id))addErr("CHAR_ID",`${c.id}: Character ID phải theo dạng M01 / F01.`);
+    if(!/^[MF]\d{2,}$/.test(c.id))addErr("CHAR_ID",`${c.id}: Character ID phải theo dạng M01 / F01 (ít nhất 2 chữ số).`);
     else if(c.type==="M"&&!/^M\d+$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Movable bắt buộc phải dùng mã Mxx.`);
     else if(c.type==="F"&&!/^F\d+$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Fixed bắt buộc phải dùng mã Fxx.`);
-    if(!Number.isFinite(Number(c.x))||!Number.isFinite(Number(c.y)))addErr("CHAR_POS",`${c.id} chưa có vị trí hợp lệ trên scene.`);
+    if(!String(c.name||"").trim())addErr("CHAR_NAME",`${c.id}: thiếu tên nhân vật.`);
+    if(c.genderConfirmed!==true)addErr("CHAR_GENDER",`${c.id}: chưa xác nhận Giới tính / Kho tên Random.`);
+    if(!String(c.age||"").trim()||!(AGE_GROUPS.some(([key])=>key===c.age)))addErr("CHAR_AGE",`${c.id}: chưa chọn Nhóm độ tuổi hoặc Không áp dụng.`);
+    if(!["SPECIFIC","STANDARD"].includes(c.appearanceMode))addErr("CHAR_APPEARANCE",`${c.id}: chưa xác nhận Có đặc điểm ngoại hình riêng hay Không cần.`);
+    if(c.appearanceMode==="SPECIFIC"&&!appearanceText(c).trim())addErr("CHAR_APPEARANCE_TEXT",`${c.id}: đã chọn Có đặc điểm riêng nhưng chưa mô tả ngoại hình.`);
+    if(c.appearanceMode==="STANDARD"&&appearanceText(c).trim())addWarn("CHAR_STANDARD_APPEARANCE",`${c.id}: chọn ngoại hình phổ thông nhưng vẫn có mô tả cũ; Asset Request sẽ ưu tiên hướng dẫn phổ thông, GD nên rà lại.`);
+    if(!["YES","NO"].includes(c.reactionMode))addErr("CHAR_REACTION_CONFIRM",`${c.id}: chưa xác nhận Có / Không cần Reaction.`);
+    if(c.reactionMode==="YES"&&!(c.reactionEvents||[]).length)addErr("CHAR_REACTION_MISSING",`${c.id}: đã chọn Có Reaction nhưng chưa tạo Event.`);
+    if(c.reactionMode==="NO"&&(c.reactionEvents||[]).length)addErr("CHAR_REACTION_CONFLICT",`${c.id}: chọn Không cần Reaction nhưng vẫn có Event.`);
+    if(!Number.isFinite(Number(c.x))||!Number.isFinite(Number(c.y))||c.x===null||c.y===null)addErr("CHAR_POS",`${c.id} chưa có vị trí hợp lệ trên Scene.`);
+    else if(Number(c.x)<0||Number(c.x)>1080||Number(c.y)<0||Number(c.y)>1610)addErr("CHAR_POS_BOUNDS",`${c.id}: vị trí nằm ngoài Scene 1080×1610.`);
     if(c.type==="F"){
       if(c.baseTarget&&!charIds.has(c.baseTarget))addErr("INITIAL_TARGET",`${c.id}: Initial State target ${c.baseTarget} không tồn tại.`);
       if(c.baseGaze==="AUTO"&&!c.baseTarget)addErr("INITIAL_GAZE_AUTO",`${c.id}: Initial State dùng AUTO nhưng chưa chọn Target nhìn.`);
     }
     (c.reactionEvents||[]).forEach((ev,ei)=>{
+      if(!(ev.steps||[]).length)addErr("REACTION_NO_STEP",`${c.id} Reaction ${ei+1}: chưa có Step nào.`);
+      if(!["SELF_PLACED","CHAR_PLACED","ALL_PLACED"].includes(ev.triggerType))addErr("REACTION_TRIGGER_TYPE",`${c.id} Reaction ${ei+1}: loại trigger không hợp lệ.`);
+      if(ev.triggerType==="SELF_PLACED"&&c.type!=="M")addErr("REACTION_SELF_FIXED",`${c.id} Reaction ${ei+1}: Fixed không có SELF_PLACED.`);
       if(ev.triggerType==="CHAR_PLACED"){
         if((ev.triggerChars||[]).length!==1)addErr("REACTION_TRIGGER_COUNT",`${c.id} Reaction ${ei+1}: CHAR_PLACED phải có đúng 1 Movable trigger.`);
         else if(!movableIds.has(ev.triggerChars[0]))addErr("REACTION_TRIGGER_MOVABLE",`${c.id} Reaction ${ei+1}: trigger phải là Movable.`);
@@ -3335,12 +3415,16 @@ function runPreflightCheck(includeProduction=false){
       if(ev.settleStepId!=="INITIAL"&&!(ev.steps||[]).some(st=>st.id===ev.settleStepId))addErr("REACTION_END_STATE",`${c.id} Reaction ${ei+1}: trạng thái giữ lại không hợp lệ.`);
       (ev.steps||[]).forEach((st,si)=>{
         if(st.target&&!charIds.has(st.target))addErr("REACTION_TARGET",`${c.id} Reaction ${ei+1} step ${si+1}: target ${st.target} không tồn tại.`);
+        if(st.gaze==="AUTO"&&!st.target)addErr("REACTION_GAZE_AUTO",`${c.id} Reaction ${ei+1} step ${si+1}: hướng mắt AUTO nhưng chưa chọn Target.`);
+        if(!Number.isFinite(Number(st.duration))||Number(st.duration)<=0)addErr("REACTION_DURATION",`${c.id} Reaction ${ei+1} step ${si+1}: Duration không hợp lệ.`);
         if(includeProduction&&!String(st.assetId||"").trim())addErr("REACTION_ASSET",`${c.id} Reaction ${ei+1} step ${si+1}: thiếu Asset ID.`);
       });
     });
   });
 
   (data.clues||[]).forEach(cl=>{
+    if(!String(cl.text||"").trim())addErr("CLUE_TEXT",`${cl.id}: chưa nhập nội dung Clue.`);
+    if(!(cl.resolveWhen||[]).length)addErr("CLUE_COMPLETE",`${cl.id}: chưa chọn Movable tại 'Clue hoàn tất khi'. Mọi Clue đều phải tick.`);
     if(cl.parent&&!clueIds.has(cl.parent))addErr("CLUE_PARENT",`${cl.id}: parent ${cl.parent} không tồn tại.`);
     (cl.resolveWhen||[]).forEach(id=>{
       if(!charIds.has(id))addErr("CLUE_RESOLVE",`${cl.id}: Resolve When trỏ tới ID không tồn tại: ${id}.`);
@@ -3350,7 +3434,20 @@ function runPreflightCheck(includeProduction=false){
   });
 
 
-  (data.level.revealWhen||[]).forEach(id=>{
+  (data.clues||[]).forEach(cl=>{
+    const seen=new Set([cl.id]);let current=cl;
+    while(current?.parent){
+      if(seen.has(current.parent)){addErr("CLUE_CYCLE",`${cl.id}: Clue Tree có vòng lặp parent, Clue con có thể không mở được.`);break}
+      seen.add(current.parent);current=(data.clues||[]).find(q=>q.id===current.parent);
+    }
+  });
+  const positions=sortedCharacters();
+  for(let i=0;i<positions.length;i++)for(let j=i+1;j<positions.length;j++){
+    const a=positions[i],b=positions[j];
+    const dx=Math.abs(Number(a.x)-Number(b.x)),dy=Math.abs(Number(a.y)-Number(b.y));
+    if(Number.isFinite(dx)&&Number.isFinite(dy)&&dx<35&&dy<35)addErr("CHAR_OVERLAP",`${a.id} và ${b.id}: vị trí/slot gần như chồng nhau, cần chỉnh để phân biệt.`);
+  }
+  revealTriggers.forEach(id=>{
     if(!charIds.has(id))addErr("REVEAL_TRIGGER",`Main Reveal trỏ tới ID không tồn tại: ${id}.`);
     else if(!movableIds.has(id))addErr("REVEAL_FIXED",`Main Reveal dùng ${id} là Fixed; điều kiện placement này sẽ không xảy ra.`);
   });
@@ -3388,7 +3485,7 @@ function runPreflightCheck(includeProduction=false){
     if(missingFromArt.length)addErr("ASSET_CONTRACT_DEV_TO_ART",`Dev JSON gọi asset chưa có trong Asset Request: ${missingFromArt.join(", ")}.`);
     if(unusedByRuntime.length)addErr("ASSET_CONTRACT_ART_TO_DEV",`Asset Request có asset mà Dev JSON không dùng: ${unusedByRuntime.join(", ")}.`);
     const endErrors=validateEndingData();endErrors.forEach(x=>addErr("ENDING",`Ending: ${x}.`));
-    if(!String(data.level.art?.backgroundDescription||"").trim())addWarn("BG_DESC","Mô tả background đang trống.");
+
   }
 
   return {errors,warnings,production:includeProduction};
@@ -3396,12 +3493,12 @@ function runPreflightCheck(includeProduction=false){
 function checkItemHtml(item,kind){return `<div class="checkItem ${kind}"><b>${esc(item.code)}</b> · ${esc(item.text)}</div>`}
 function renderPreflightCheck(result){
   const e=result.errors||[],w=result.warnings||[],production=!!result.production;
-  const status=e.length?"CÒN LỖI":w.length?"PASS · CÓ WARNING":"PASS";
+  const status=e.length?"CÒN LỖI":w.length?"DATA PASS · CÓ WARNING":"DATA PASS · CHỜ LOGIC REVIEW";
   const statusClass=e.length?"err":w.length?"warn":"ok";
   $("#checkLevelBody").innerHTML=`<div class="checkSummary"><span class="checkChip ${statusClass}">${production?"PRODUCTION CHECK":"DESIGN CHECK"} · ${status}</span><span class="checkChip err">${e.length} lỗi</span><span class="checkChip warn">${w.length} warning</span></div>
   <div class="checkSection"><h4>Lỗi Tool biết chắc</h4>${e.length?e.map(x=>checkItemHtml(x,"err")).join(""):'<div class="checkEmpty">✓ Không có lỗi blocking.</div>'}</div>
   <div class="checkSection"><h4>Warning để GD review</h4>${w.length?w.map(x=>checkItemHtml(x,"warn")).join(""):'<div class="checkEmpty">✓ Không có warning.</div>'}</div>
-  <div class="checkFoot">CHECK chỉ bắt lỗi data/reference mà Tool biết chắc. <b>PASS không có nghĩa level đã hay, đủ evidence hay đúng độ khó.</b>${production?" Production Check mới kiểm thêm Asset / Ending / handoff.":""}</div>`;
+  <div class="checkFoot">DATA PASS chỉ xác nhận dữ liệu đã đủ theo quy chuẩn. <b>Vẫn cần Lead kiểm tra Logic, tính công bằng và đường giải trước khi chốt level.</b>${production?" Production Check mới kiểm thêm Asset / Ending / handoff.":""}</div>`;
 }
 function openPreflightCheck(){const r=runPreflightCheck(false);renderPreflightCheck(r);$("#checkOverlay").classList.add("show");return r}
 function validateEndingData(){
@@ -3421,9 +3518,13 @@ function xlsxCell(v,row,col,style=0){
   if(typeof v==="number"&&Number.isFinite(v))return `<c r="${ref}"${style?` s="${style}"`:""}><v>${v}</v></c>`;
   return `<c r="${ref}" t="inlineStr"${style?` s="${style}"`:""}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
 }
-function makeXlsxSheet(rows,widths=[],merges=[],boldRows=[]){
+function makeXlsxSheet(rows,widths=[],merges=[],boldRows=[],wrapNotes=false){
   const cols=widths.length?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";
-  const sheetRows=rows.map((row,ri)=>`<row r="${ri+1}"${ri===0?' ht="24" customHeight="1"':''}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,(ri===0||boldRows.includes(ri+1))?1:0)).join("")}</row>`).join("");
+  const sheetRows=rows.map((row,ri)=>{
+    const standardNote=wrapNotes&&String(row[13]||"").includes("NHÂN VẬT PHỔ THÔNG");
+    const ht=ri===0?' ht="24" customHeight="1"':standardNote?' ht="76" customHeight="1"':'';
+    return `<row r="${ri+1}"${ht}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,(ri===0||boldRows.includes(ri+1))?1:(wrapNotes&&(ci===12||ci===13)?2:0))).join("")}</row>`;
+  }).join("");
   const mergeXml=merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join("")}</mergeCells>`:"";
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"/></sheetViews>${cols}<sheetData>${sheetRows}</sheetData>${mergeXml}</worksheet>`;
 }
@@ -3475,8 +3576,8 @@ function exportAssetRequest(){
     "_rels/.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
     "xl/workbook.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ASSET REQUEST" sheetId="1" r:id="rId1"/><sheet name="SCENE START + SOLVED" sheetId="2" r:id="rId2"/></sheets></workbook>`,
     "xl/_rels/workbook.xml.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
-    "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
-    "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,12,34,34,22,18,34]),
+    "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+    "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,42,48,22,18,34],[],[],true),
     "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9"],[15])
   };
   const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
