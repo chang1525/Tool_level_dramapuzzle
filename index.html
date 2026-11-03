@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DRAMA PUZZLE — Live Level Editor V1.40</title>
+<title>DRAMA PUZZLE — Live Level Editor V1.45 · CLUE + REACTION</title>
 <style>
 :root{
   --bg:#f4f1f6;--paper:#fff;--ink:#342f3a;--muted:#7d7483;--line:#ddd6e1;
@@ -41,7 +41,20 @@ textarea{min-height:72px;resize:vertical}.col{display:grid;gap:7px}.row{display:
 .stage{position:relative;width:min(100%,475px);margin:0 auto;aspect-ratio:1080/1610;background:#fff;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
 .editmark{position:absolute;left:8px;top:8px;z-index:9999;background:#ffffffdf;border:1px solid #eee;border-radius:7px;padding:4px 6px;font-size:8px;font-weight:900}
 .imgLayer{position:absolute;transform-origin:top left;touch-action:none;display:block;visibility:visible;opacity:1}.imgLayer img{width:100%;height:100%;object-fit:fill;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}.imgLayer.sel{outline:3px solid #4388ff}.imgLayer.multiSel{outline:3px solid #20a879;box-shadow:0 0 0 3px #20a87922}.resize{position:absolute;right:-8px;bottom:-8px;width:18px;height:18px;border-radius:50%;background:#4388ff;border:2px solid #fff;display:none;cursor:nwse-resize}.imgLayer.sel .resize{display:block}
-.char,.slot{position:absolute;transform:translate(-50%,-50%)}.char{z-index:5000;width:38px;height:38px;border-radius:50%;background:#fff;border:3px solid var(--pink);display:grid;place-items:center;box-shadow:0 5px 12px #332b3825;touch-action:none;cursor:grab}.char.f{border-color:var(--purple)}.char.sel{box-shadow:0 0 0 5px #ff6f9630,0 5px 12px #332b3825}.char.multiSel{box-shadow:0 0 0 5px #20a87944,0 5px 12px #332b3825}
+.char,.slot{position:absolute;transform:translate(-50%,-50%)}
+/* A fixed, noninteractive child of the character: dragging the character moves the
+   frame automatically. Both sizes are proportional to the same 1080x1610 Scene. */
+.char.frameOn{width:5.55555556%;height:3.726708075%;box-sizing:content-box;isolation:isolate}
+.char.frameOn::before{content:"";position:absolute;left:50%;top:50%;
+  width:265%;height:393.33333333%;transform:translate(-50%,-50%);
+  background-image:var(--character-frame-image);background-repeat:no-repeat;
+  background-position:center;background-size:100% 100%;pointer-events:none;z-index:-1}
+.char.frameOn .face,.char.frameOn .name,.char.frameOn .apps{display:none!important}
+.char.frameOn .code{position:static;left:auto;bottom:auto;transform:none;
+  background:transparent!important;color:#342f3a!important;border-radius:0;
+  padding:0;font-size:var(--char-frame-code-font,12px);font-weight:950;
+  line-height:1;white-space:nowrap;pointer-events:none}
+.char{z-index:5000;width:38px;height:38px;border-radius:50%;background:#fff;border:3px solid var(--pink);display:grid;place-items:center;box-shadow:0 5px 12px #332b3825;touch-action:none;cursor:grab}.char.f{border-color:var(--purple)}.char.sel{box-shadow:0 0 0 5px #ff6f9630,0 5px 12px #332b3825}.char.multiSel{box-shadow:0 0 0 5px #20a87944,0 5px 12px #332b3825}
 .face{width:19px;height:19px;border-radius:50%;background:#f1edf3;position:relative}.face.expr{font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;text-align:center;background:transparent;padding:0;margin:0}.face.expr:before,.face.expr:after{display:none}.face.expr i{display:none}.face:before,.face:after{content:"";position:absolute;top:6px;width:3px;height:3px;background:#514953;border-radius:50%}.face:before{left:4px}.face:after{right:4px}.face i{position:absolute;left:50%;bottom:4px;width:7px;height:3px;border-bottom:2px solid #514953;border-radius:50%;transform:translateX(-50%)}
 .code{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);background:var(--pink);color:#fff;border-radius:999px;padding:2px 6px;font-size:11.5px;font-weight:950;line-height:1.1;white-space:nowrap;z-index:2}.char.f .code{background:var(--purple)}.name{position:absolute;left:50%;top:47px;transform:translateX(-50%);font-size:11.5px;font-weight:850;background:#ffffffdf;border-radius:5px;padding:1px 4px;white-space:nowrap;z-index:1}
 .apps{position:absolute;left:50%;top:64px;transform:translateX(-50%);width:max-content;max-width:124px;text-align:center;pointer-events:none}.appTag{display:block;font-size:10px;line-height:1.18;background:#fff;border:1px solid var(--line);border-radius:7px;padding:2px 5px;white-space:pre-line;overflow-wrap:break-word;max-width:124px;text-align:center}
@@ -288,7 +301,7 @@ body.play #liveClues{flex:1;min-height:0;height:auto;max-height:none;overflow-y:
 <body>
 <div class="app">
 <header class="top">
-  <div class="brand">DRAMA PUZZLE</div><span class="version">LEVEL TOOL V1.41</span>
+  <div class="brand">DRAMA PUZZLE</div><span class="version">LEVEL TOOL V1.45 · CLUE + REACTION</span>
   <button class="btn on" id="editBtn">EDIT</button><button class="btn" id="playBtn">PLAY</button>
   <details class="topMenu" id="replayMenu" style="display:none"><summary class="btn good">↻ CHƠI LẠI ▾</summary><div class="topMenuPanel" style="min-width:245px">
     <button class="btn" id="replayOriginalBtn">↻ Chơi lại · Tên gốc</button>
@@ -347,7 +360,8 @@ body.play #liveClues{flex:1;min-height:0;height:auto;max-height:none;overflow-y:
         <button class="toolBtn" data-tool="arrow" title="Mũi tên">➜</button>
         <button class="toolBtn" data-tool="qslot" title="Slot dấu hỏi">?</button>
         <button class="toolBtn" data-tool="text" title="Text note">T</button>
-        <div class="toolSep"></div><button class="toolBtn" id="toggleHudBtn" data-ui-toggle="1" title="Bật / tắt lớp vị trí UI">UI</button>
+        <div class="toolSep"></div><button class="toolBtn" id="toggleHudBtn" data-ui-toggle="1" title="Ẩn/hiện UI khi chỉnh Scene; ảnh xuất luôn có UI">UI</button>
+        <button class="toolBtn" id="toggleCharacterFrameBtn" data-ui-toggle="1" type="button" style="font-size:10px" title="KHUNG NV: Bật/tắt khung xanh tự gắn vào tâm tất cả nhân vật (159 × 236 / Scene 1080 × 1610)" aria-label="Bật hoặc tắt khung nhân vật" aria-pressed="false">KHUNG</button>
       </div>
       <div id="stage" class="stage"><div class="editmark">1080 × 1610 · SCENE</div><div class="gameHud" id="gameHud"><div class="hudZone hudLives">❤️ ♡</div><div class="hudZone hudHome"><span id="hudEpisode">EP.01</span> ⌂</div><div class="hudZone hudTools">📝 🖼</div><div class="hudZone hudAds">ADS</div></div></div>
     </div>
@@ -477,6 +491,23 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const deep=o=>JSON.parse(JSON.stringify(o));
 const uid=p=>p+Math.random().toString(36).slice(2,8);
+// CHARACTER FRAME V1.42: approved, fixed SVG, centered on each character's anchor.
+// Width/height are in the SAME 1080 x 1610 logical Scene units as character x/y.
+// This is a visual production guide, not a separately editable Scene image/asset.
+const CHARACTER_FRAME_WIDTH=159, CHARACTER_FRAME_HEIGHT=236, CHARACTER_MARKER_DIAMETER=60;
+const CHARACTER_FRAME_PATH="M79.3 1.75C124.25 1.75 156.85 26.75 156.85 67.25C156.85 101.75 136.25 124.75 108.25 134.75C120.75 143.25 130.25 158.25 130.25 177.75V183.25C130.25 190.25 125.75 195.85 118.75 195.85H140.825C144.879 195.85 148.175 199.177 148.175 203.294V225.906C148.175 230.024 144.879 233.35 140.825 233.35H20.0258C15.9714 233.35 12.675 230.024 12.675 225.906V203.294C12.675 199.177 15.9714 195.85 20.0258 195.85H39.85C32.85 195.85 28.35 190.25 28.35 183.25V177.75C28.35 158.25 37.85 143.25 50.35 134.75C22.35 124.75 1.75 101.75 1.75 67.25C1.75 26.75 34.35 1.75 79.3 1.75Z";
+const CHARACTER_FRAME_SRC='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="159" height="236" viewBox="0 0 159 236" fill="none"><path d="${CHARACTER_FRAME_PATH}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" stroke="#49C52A"/></svg>`
+);
+function syncCharacterFrameScale(){
+  const stage=document.getElementById('stage');if(!stage)return;
+  const scale=stage.getBoundingClientRect().width/1080;
+  stage.querySelectorAll('.char.frameOn').forEach(el=>{
+    el.style.borderWidth=`${Math.max(1,3*scale)}px`;
+    el.style.setProperty('--char-frame-code-font',`${Math.max(7,21*scale)}px`);
+  });
+}
+
 
 const EMOTION_GROUPS={
   "Bình thường / thái độ":[
@@ -764,7 +795,7 @@ function blankSceneArtItem(){
   return {id:uid("ART_"),name:"",description:"",exportMode:"BAKED_BG",assetId:"BG01",artistNote:""};
 }
 function blank(){
-  return {level:{id:"",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[]};
+  return {level:{id:"",version:"1.0",hook:"",characterFrameEnabled:false,difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[]};
 }
 function blankSceneEvidence(){
   return {id:"",text:"",affects:[]};
@@ -777,7 +808,7 @@ function blankReactionStep(){
 }
 function blankReactionEvent(triggerType="SELF_PLACED"){
   const step=blankReactionStep();
-  return {id:uid("RE_"),triggerType,triggerChars:[],steps:[step],settleStepId:step.id};
+  return {id:uid("RE_"),triggerType,triggerChars:[],steps:[step]};
 }
 // Điều kiện của mỗi Event tính theo chính Dev JSON hiện tại, không thêm yêu cầu M phải ở Scene.
 function reactionConditionIds(c,ev){
@@ -795,11 +826,10 @@ function duplicateReactionCondition(c,ev){
   const key=reactionConditionKey(c,ev);
   return key?(c.reactionEvents||[]).find(other=>other!==ev&&reactionConditionKey(c,other)===key):null;
 }
-function reactionSettledStep(ev){
-  return (ev?.steps||[]).find(st=>st.id===ev.settleStepId)||null;
-}
-function reactionSettledState(source,ev){
-  return reactionSettledStep(ev)||initialStateRecord(source);
+// Reaction cuối cùng luôn ở lại cho đến khi Reaction Event khác thay đổi nhân vật.
+// Không còn tuỳ chọn trả về Initial State hay giữ một Step bất kỳ.
+function reactionFinalStep(ev){
+  return (ev?.steps||[]).at(-1)||null;
 }
 /* sample removed from production editor V1.32 */
 
@@ -912,6 +942,8 @@ function normalize(d){
   d.level=d.level||blank().level;
   d.level.id=String(d.level.id||"").trim().toUpperCase();
   d.level.version=String(d.level.version||"1.0").trim()||"1.0";
+  // Old projects open in their original visual mode until KHUNG is enabled.
+  d.level.characterFrameEnabled=d.level.characterFrameEnabled===true;
   delete d.level.moves; // V1.27: 2 mạng là rule global, không còn data theo level.
   d.images=d.images||[];
   d.characters=d.characters||[];
@@ -1074,14 +1106,10 @@ function normalize(d){
         st.target=st.target||"";
         st.duration=Math.max(0.1,Number(st.duration)||0.6);
       });
-      // Project V1.29: chỉ hold của Step cuối thực sự có hiệu lực.
-      // Chuyển sang chọn trạng thái lưu lại của cả Event, giữ nguyên hành vi cũ.
-      if(ev.settleStepId===undefined){
-        const last=ev.steps[ev.steps.length-1];
-        ev.settleStepId=last?.hold===false?"INITIAL":last?.id||"INITIAL";
-      }
-      if(ev.settleStepId!=="INITIAL"&&!ev.steps.some(st=>st.id===ev.settleStepId))ev.settleStepId="INITIAL";
-      ev.steps.forEach(st=>delete st.hold); // Không còn checkbox hold ở từng Step.
+      // V1.45: tất cả Project cũ (kể cả chọn "Trở về ban đầu") dùng
+      // Step cuối làm trạng thái giữ lại. Loại bỏ dữ liệu tùy chọn cũ.
+      delete ev.settleStepId;
+      ev.steps.forEach(st=>delete st.hold);
     });
     ensureCharacterAssetIds(c);
   });
@@ -1103,20 +1131,14 @@ function normalize(d){
     }
   });
 
-  // New clue schema:
-  // Root is ACTIVE at START.
-  // Child opens automatically when its direct parent resolves.
-  // preOpen only decides LOCKED placeholder vs fully HIDDEN.
+  // V1.45: Root bắt đầu ACTIVE, clue con luôn hiện ô khóa cho tới
+  // khi clue mẹ hoàn tất. Project cũ có HIDDEN tự chuyển thành LOCKED.
   d.clues.forEach(c=>{
     c.resolveWhen=[...new Set((c.resolveWhen||[]).filter(id=>validMovableTriggerIds.has(id)))];
     delete c.affects;
     delete c.helps;delete c.solveRoute;delete c.routeConfirmed;delete c.requiresSolved;
-    if(c.parent){
-      c.preOpen=c.preOpen||(c.initial==="HIDDEN"?"HIDDEN":"LOCKED");
-      if(!["LOCKED","HIDDEN"].includes(c.preOpen))c.preOpen="LOCKED";
-    }else{
-      c.preOpen="ACTIVE";
-    }
+    delete c.initial; // Trường trạng thái clue từ các phiên bản cũ.
+    c.preOpen=c.parent?"LOCKED":"ACTIVE";
   });
 
 
@@ -1430,9 +1452,7 @@ function reactionPreview(r,sourceId=""){
 }
 function sequencePreview(ev,sourceId=""){
   const sequence=(ev?.steps||[]).map(st=>reactionPreview(st,sourceId)||"∅").join(" → ");
-  const settled=reactionSettledStep(ev);
-  const ending=settled?`giữ Step ${(ev.steps||[]).indexOf(settled)+1}`:"về biểu cảm ban đầu";
-  return `${sequence} · ${ending}`;
+  return `${sequence} · giữ biểu cảm cuối`;
 }
 function reactionPlayPreview(r,sourceId=""){
   const g=gazeDisplay(sourceId,r);
@@ -1511,8 +1531,8 @@ function renderLists(){
 
 function clueList(c){
   const kids=data.clues.filter(x=>x.parent===c.id);
-  const state=c.parent?c.preOpen:"ACTIVE";
-  const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
+  const state=c.parent?"LOCKED":"ACTIVE";
+  const label=c.parent?"KHÓA":"CÓ SẴN";
   return `<div><div class="card clueSortable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" data-s="clue:${c.id}" data-clue-row="${c.id}">
     <button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button>
     <button class="clueQuickDelete" type="button" data-del-clue="${c.id}" title="Xóa clue ${c.id}">✕</button>
@@ -1552,6 +1572,13 @@ function renderLive(){
   $("#trayHint").textContent=mode==="play"?"Kéo character vào scene":"M/F đều có trên Tray + Scene trong Edit";
 
   const st=$("#stage"); st.querySelectorAll(".imgLayer,.char,.slot,.noteObj").forEach(n=>n.remove());
+  const useCharacterFrames=data.level.characterFrameEnabled===true;
+  const frameToggle=$("#toggleCharacterFrameBtn");
+  frameToggle.classList.toggle("active",useCharacterFrames);
+  frameToggle.setAttribute("aria-pressed",String(useCharacterFrames));
+  frameToggle.title=useCharacterFrames
+    ?"KHUNG NV đang BẬT · Bấm để ẩn khung khi chỉnh Scene. Ảnh xuất luôn có khung và UI."
+    :"KHUNG NV đang TẮT trong Editor · Bấm để xem khung. Ảnh xuất luôn có khung và UI.";
 
   [...data.images].sort((a,b)=>a.z-b.z).forEach(i=>st.appendChild(createImageLayer(i)));
 
@@ -1639,14 +1666,23 @@ function renderLive(){
 
     const el=document.createElement("div");
     const ckey="char:"+c.id;
-    el.className="char "+(c.type==="F"?"f ":"")+(mode==="edit"&&selected.type==="char"&&selected.id===c.id?"sel ":"")+(multiSel.has(ckey)?"multiSel":"");
+    el.className="char "+(c.type==="F"?"f ":"")+(useCharacterFrames?"frameOn ":"")+(mode==="edit"&&selected.type==="char"&&selected.id===c.id?"sel ":"")+(multiSel.has(ckey)?"multiSel":"");
     el.dataset.charId=c.id;
     el.style.cssText=`left:${c.x/1080*100}%;top:${c.y/1610*100}%`;
+    if(useCharacterFrames){
+      // The CSS background is part of the marker, so it cannot be selected,
+      // resized, moved, duplicated, or separately exported as a layer.
+      el.style.setProperty("--character-frame-image",`url("${CHARACTER_FRAME_SRC}")`);
+      el.style.borderWidth=`${Math.max(1,3*st.getBoundingClientRect().width/1080)}px`;
+      el.style.setProperty("--char-frame-code-font",`${Math.max(7,21*st.getBoundingClientRect().width/1080)}px`);
+    }
     const rv=mode==="play"?play.reactions[c.id]:null;
     const initialGaze=!rv?initialGazePreview(c,mode==="edit"):"";
     const editCode=mode==="edit"?`<span class="code">${c.id}</span>`:"";
     const rxBadge=rv?reactionPlayPreview(rv,c.id):"";
-    el.innerHTML=`${rxBadge?`<div class="react">${esc(rxBadge)}</div>`:""}${initialGaze?`<div class="react editPreview" title="Initial gaze">${esc(initialGaze)}</div>`:""}${face(rv?.emotion||c.baseExpression||"😐")}${editCode}<span class="name" data-char-name="${c.id}">${esc(displayName(c))}</span>
+    el.innerHTML=useCharacterFrames
+      ? `${rxBadge?`<div class="react">${esc(rxBadge)}</div>`:""}${initialGaze?`<div class="react editPreview" title="Initial gaze">${esc(initialGaze)}</div>`:""}<span class="code">${esc(c.id)}</span>`
+      : `${rxBadge?`<div class="react">${esc(rxBadge)}</div>`:""}${initialGaze?`<div class="react editPreview" title="Initial gaze">${esc(initialGaze)}</div>`:""}${face(rv?.emotion||c.baseExpression||"😐")}${editCode}<span class="name" data-char-name="${c.id}">${esc(displayName(c))}</span>
       <div class="apps">${appearanceText(c)?`<span class="appTag">${esc(appearanceText(c))}</span>`:""}</div>`;
     if(mode==="edit"){
       el.onpointerdown=e=>moveChar(e,c,el);
@@ -1681,8 +1717,8 @@ function renderLive(){
 }
 
 function editClue(c,d){
-  const state=c.parent?c.preOpen:"ACTIVE";
-  const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
+  const state=c.parent?"LOCKED":"ACTIVE";
+  const label=c.parent?"KHÓA":"CÓ SẴN";
   return `<div class="cl clueSortable ${d?"child":""}" data-live="${c.id}" data-clue-row="${c.id}"><button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button><button class="clueQuickDelete" type="button" data-del-clue="${c.id}" title="Xóa clue ${c.id}">✕</button><b>${c.id}</b> · <span data-clue-text="${c.id}">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</span> <span class="pill ${state.toLowerCase()}">${label}</span></div>`+
     data.clues.filter(x=>x.parent===c.id).map(k=>editClue(k,d+1)).join("");
 }
@@ -1700,7 +1736,6 @@ function playClue(c,d){
     // A locked child only becomes visible as a lock while its DIRECT parent is open.
     // Deeper descendants do not leak through a still-locked parent.
     if(!ps?.active||ps.done)return"";
-    if(c.preOpen==="HIDDEN")return"";
     return `<div class="cl ${d?"child":""} locked">🔒 █████ ███</div>`;
   }
 
@@ -2130,7 +2165,7 @@ function clueIns(b,c){
 
     ${isRoot
       ? `<div class="small"><b>Root clue:</b> có sẵn ngay từ START.</div>`
-      : `<label>🟡 Trước khi mở<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa</option><option value="HIDDEN">Ẩn — không hiện gì</option></select></label>`
+      : `<div class="small"><b>Clue con:</b> luôn hiện ô khóa khi clue mẹ đang mở. Tự mở sau khi clue mẹ hoàn tất.</div>`
     }
 
     <label class="requiredField"><span class="requiredMark">●</span> Nội dung<textarea id="qt">${esc(c.text)}</textarea></label>
@@ -2146,7 +2181,6 @@ function clueIns(b,c){
   </div>`;
 
   $("#qp").value=c.parent||"";
-  if($("#qpre"))$("#qpre").value=c.preOpen||"LOCKED";
 
   const updatePreview=()=>{
     $("#cluePreview").textContent=resolveTokens(c.text,editNameMap());
@@ -2157,8 +2191,7 @@ function clueIns(b,c){
   $("#qt").oninput=e=>{c.text=e.target.value;save();updatePreview()};
   $("#qt").onchange=e=>{c.text=tokenizeKnownNames(e.target.value);e.target.value=c.text;save();updatePreview();renderLists();renderClues()};
   $("#insertToken").onclick=()=>{const id=$("#tokenChar").value;if(!id){toast("Chọn Character trước");return}insertAtCursor($("#qt"),"{"+id+"}")};
-  $("#qp").onchange=e=>{const newParent=e.target.value||null;if(!canReparentClue(c,newParent)){toast("Không thể chuyển: cây clue sẽ vượt quá 4 tầng");e.target.value=c.parent||"";return}c.parent=newParent;c.preOpen=newParent?(c.preOpen==="HIDDEN"?"HIDDEN":"LOCKED"):"ACTIVE";renumberClues();selected={type:"clue",id:c.id};save();refreshImmediate();toast(newParent?`Đã chuyển thành clue con: ${c.id}`:`Đã chuyển thành root: ${c.id}`)};
-  if($("#qpre"))$("#qpre").onchange=e=>{c.preOpen=e.target.value;save();refreshImmediate()};
+  $("#qp").onchange=e=>{const newParent=e.target.value||null;if(!canReparentClue(c,newParent)){toast("Không thể chuyển: cây clue sẽ vượt quá 4 tầng");e.target.value=c.parent||"";return}c.parent=newParent;c.preOpen=newParent?"LOCKED":"ACTIVE";renumberClues();selected={type:"clue",id:c.id};save();refreshImmediate();toast(newParent?`Đã chuyển thành clue con: ${c.id}`:`Đã chuyển thành root: ${c.id}`)};
   bindChecks($("#qrw"),a=>{c.resolveWhen=a;save()});
   $("#qchild").onclick=()=>addClue(c.id);
   $("#qd").onclick=()=>confirmDeleteClue(c.id);
@@ -2238,10 +2271,7 @@ function reactionIns(b,charId,eventId){
     <div class="head" style="margin-top:8px"><b class="requiredHeader"><span class="requiredMark">●</span> Biểu cảm Reaction</b></div>
     ${ev.steps.length>1?`<div class="artistNoteInline"><b>⚠ Reaction cũ có ${ev.steps.length} Step</b><div class="small">Dữ liệu cũ vẫn được giữ nguyên khi mở, Playtest và xuất Dev JSON. Muốn chuyển về 1 biểu cảm, chọn “Chỉ giữ Step này” ở bên dưới. Hãy lưu bản Project cũ trước khi chuyển.</div></div>`:""}
     <div id="stepList"></div>
-    <label class="requiredField"><span class="requiredMark">●</span> Sau khi Reaction kết thúc
-      <select id="evSettleStep"></select>
-    </label>
-    <div class="small">Chọn trở về biểu cảm ban đầu hoặc giữ biểu cảm Reaction tới lần thay đổi tiếp theo.</div>
+    <div class="small"><b>Sau khi Reaction kết thúc:</b> nhân vật luôn giữ biểu cảm của Step cuối (hoặc biểu cảm gần nhất nếu Step cuối chọn không đổi), cho tới Reaction tiếp theo. Không trở về Initial State.</div>
 
     <div class="row"><button class="btn" id="evUp">↑ Event</button><button class="btn" id="evDown">↓ Event</button></div>
     <button class="btn danger" id="evDelete">Xóa Reaction Event</button>
@@ -2312,15 +2342,9 @@ function reactionIns(b,charId,eventId){
       if(ev.steps.length>1)q("data-step-keep").onclick=()=>{
         if(!window.confirm(`Chỉ giữ Step ${i+1} của ${c.id}? Các Step khác sẽ bị xóa khỏi Project khi lưu. Hãy giữ một bản .editor.json cũ nếu cần khôi phục.`))return;
         ev.steps=[st];
-        if(ev.settleStepId!=="INITIAL")ev.settleStepId=st.id;
         save();renderInspector();renderLists();toast("Đã chuyển Reaction cũ về 1 biểu cảm");
       };
     });
-    const keep=$("#evSettleStep");
-    keep.innerHTML=`<option value="INITIAL">Trở về ban đầu · ${esc(emotionGlyph(c.baseExpression||"😐"))}</option>`+
-      ev.steps.map((st,i)=>`<option value="${esc(st.id)}">Giữ ${ev.steps.length>1?`Step ${i+1}`:"biểu cảm Reaction"} · ${esc(reactionPreview(st,c.id)||"∅")}</option>`).join("");
-    keep.value=ev.settleStepId||"INITIAL";
-    keep.onchange=e=>{ev.settleStepId=e.target.value;save();renderLists()};
   };
 
   renderTriggerConfig();
@@ -2437,6 +2461,12 @@ function annotationIns(b,a){
   $("#anDelete").onclick=()=>{data.annotations=data.annotations.filter(x=>x!==a);normalizeSceneZData();multiSel.delete("annotation:"+a.id);selected={type:"level",id:"level"};save();refreshImmediate()};
 }
 
+// Project-wide switch. It changes visualization only, never positions or asset IDs.
+$("#toggleCharacterFrameBtn").onclick=()=>{
+  data.level.characterFrameEnabled=!data.level.characterFrameEnabled;
+  save();refreshImmediate();
+  toast(data.level.characterFrameEnabled?"Đã bật khung nhân vật · tự scale theo Scene":"Đã tắt khung nhân vật");
+};
 function setTool(tool){
   activeTool=tool;
   $$(".toolBtn[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));
@@ -2446,7 +2476,7 @@ function setTool(tool){
 $("#toggleHudBtn").onclick=()=>{
   const hidden=$("#stage").classList.toggle("hudHidden");
   $("#toggleHudBtn").classList.toggle("active",!hidden);
-  $("#toggleHudBtn").title=hidden?"Hiện vị trí nút UI":"Ẩn vị trí nút UI";
+  $("#toggleHudBtn").title=hidden?"Hiện UI khi chỉnh Scene (ảnh xuất luôn có UI)":"Ẩn UI khi chỉnh Scene (ảnh xuất luôn có UI)";
 };
 
 function createAnnotation(type,x,y,w,h,extra={}){
@@ -3389,20 +3419,9 @@ function runReactionSequence(source,ev){
         if(!play||session!==playSession||play.reactionTokens[source.id]!==token)return;
         i++;apply();
       },ms);
-    }else{
-      // Tất cả các Step đều chạy đủ duration, rồi mới chuyển sang state giữ lại.
-      setTimeout(()=>{
-        if(!play||session!==playSession||play.reactionTokens[source.id]!==token)return;
-        const settled=reactionSettledStep(ev);
-        if(settled){
-          let settledEmotion=startingEmotion;
-          for(const step of ev.steps){settledEmotion=step.emotion||settledEmotion;if(step.id===settled.id)break}
-          play.reactions[source.id]={...settled,emotion:settledEmotion};
-        }
-        else delete play.reactions[source.id]; // Trở về Initial State: M=TRAY, F=BASE.
-        savePlayProgress();renderLive();
-      },ms);
     }
+    // Step cuối giữ nguyên, không đặt timer để đưa biểu cảm trở về ban đầu.
+    // Reaction Event khác trên cùng character vẫn có thể thay thế bằng token mới.
   };
 
   apply();
@@ -3573,7 +3592,7 @@ function buildRuntimeData(){
       whenPlaced:runtimeWhenPlaced(c,ev),
       steps:(ev.steps||[]).map(st=>({assetId:st.assetId,duration:Number(st.duration)||0.6})),
       // Sau khi chạy hết các Step, giữ asset này tới Reaction Event tiếp theo.
-      endAssetId:reactionSettledStep(ev)?.assetId||initialAssetId
+      endAssetId:reactionFinalStep(ev)?.assetId||initialAssetId
     }));
     return {
       id:c.id,
@@ -3594,7 +3613,7 @@ function buildRuntimeData(){
     id:cl.id,
     parentId:cl.parent||null,
     text:cl.text||"",
-    startState:cl.parent?(cl.preOpen==="HIDDEN"?"HIDDEN":"LOCKED"):"ACTIVE",
+    startState:cl.parent?"LOCKED":"ACTIVE",
     completeWhenPlaced:deep(cl.resolveWhen||[])
   }));
 
@@ -3743,7 +3762,6 @@ function runPreflightCheck(includeProduction=false){
         seenRxTriggers.push({key:triggerKey,ids:triggerIds,index:ei+1});
       }
       if(c.type==="M"&&triggerIds.length&&!triggerIds.includes(c.id))addWarn("REACTION_IN_TRAY",`${c.id} Reaction ${ei+1}: có thể chạy khi ${c.id} còn trong Tray. Kiểm tra có đúng ý đồ không.`);
-      if(ev.settleStepId!=="INITIAL"&&!(ev.steps||[]).some(st=>st.id===ev.settleStepId))addErr("REACTION_END_STATE",`${c.id} Reaction ${ei+1}: trạng thái giữ lại không hợp lệ.`);
       (ev.steps||[]).forEach((st,si)=>{
         if(st.emotion==="CUSTOM"&&!String(st.emotionDescription||"").trim())addErr("CUSTOM_EMOTION_DESC",`${c.id} Reaction ${ei+1} Step ${si+1}: Biểu cảm tự chọn chưa mô tả để Art vẽ.`);
         if(st.target&&!charIds.has(st.target))addErr("REACTION_TARGET",`${c.id} Reaction ${ei+1} step ${si+1}: target ${st.target} không tồn tại.`);
@@ -3852,7 +3870,6 @@ function navigateCheckIssue(item){
     else if(code==="CHAR_REACTION_MISSING")focusId="addEvent";
     else if(code==="INITIAL_TARGET"||code==="INITIAL_GAZE_AUTO")focusId="cbasetarget";
     else if(code.startsWith("REACTION_TRIGGER"))focusId="evTrigger";
-    else if(code==="REACTION_END_STATE")focusId="evSettleStep";
     else if(code==="CHAR_UI_OVERLAP"||code.startsWith("CHAR_POS"))focusId="ci";
   }else if(cl&&byClue(cl[1])){
     next={type:"clue",id:cl[1]};focusId=code==="CLUE_COMPLETE"||code.startsWith("CLUE_RESOLVE")?"qrw":code==="CLUE_PARENT"||code==="CLUE_DEPTH"?"qp":"qt";
@@ -3998,7 +4015,7 @@ function buildArtRequestWorkbook(assetRows,startBytes,solvedBytes){
   if(art.referenceNote){artSet(sc,7,1,"THAM KHẢO",4);artMerge(sc,7,2,6,art.referenceNote,5,artTextHeight(art.referenceNote,104,33))}
   artMerge(sc,8,1,3,"START  |  Khi vào level",6,31);artMerge(sc,8,4,6,"SOLVED  |  Vị trí đúng",11,31);
   for(let r=9;r<=28;r++)sc.heights.set(r,24);
-  artMerge(sc,29,1,6,"Ảnh hướng dẫn Art: có cả ghi chú ẩn trong Play. Chữ note là chỉ dẫn, không phải chữ cần vẽ vào game.",2,30);
+  artMerge(sc,29,1,6,"Ảnh START / SOLVED luôn có khung nhân vật + 4 vùng UI để đối chiếu bố cục, dù Editor tắt KHUNG / UI. Ghi chú và UI là chỉ dẫn, không phải chi tiết cần vẽ vào BG.",2,30);
   artMerge(sc,31,1,6,"BACKGROUND & ĐỒ VẬT CẦN VẼ",3,30);
   artRow(sc,32,["ASSET ID","HẠNG MỤC","YÊU CẦU VẼ","","","CÁCH XUẤT"],4,29);sc.merges.push("C32:E32");
   let sr=33;
@@ -4099,7 +4116,7 @@ async function exportAssetRequest(){
     const files=buildArtRequestWorkbook(resolvedAssetRows(),start,solved);
     const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${safeBaseName(data.level.id||"DRAMA_LEVEL")}_ASSET_REQUEST.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast("Đã xuất Asset Request · 3 tab, có ảnh START / SOLVED");
+    toast("Đã xuất Asset Request · START / SOLVED luôn có KHUNG NV + UI");
   }catch(err){console.error(err);toast("Không xuất được Asset Request · kiểm tra ảnh/layer trên Scene")}
 }
 function loadCanvasImage(src){return new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>resolve(null);im.src=src})}
@@ -4132,13 +4149,79 @@ function drawQslotPng(ctx,o){
   ctx.fillText("?",x+w*.27,y+h*.60);ctx.fillText("?",x+w*.73,y+h*.60);
   ctx.restore();
 }
+// Production references always show the approved frame, independent of the Editor KHUNG toggle.
+// All dimensions here are logical Scene pixels for the fixed 1080 x 1610 coordinate system.
 function drawSceneCharPng(ctx,c){
   ctx.save();
-  ctx.beginPath();ctx.fillStyle="#fff";ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";
-  ctx.lineWidth=6;ctx.arc(c.x,c.y,30,0,Math.PI*2);ctx.fill();ctx.stroke();
-  ctx.fillStyle="#342f3a";ctx.font="900 21px Arial";ctx.textAlign="center";
+  // SVG approved by design, centered exactly on the character marker.
+  ctx.save();
+  ctx.translate(c.x-CHARACTER_FRAME_WIDTH/2,c.y-CHARACTER_FRAME_HEIGHT/2);
+  ctx.strokeStyle="#49C52A";
+  ctx.lineWidth=3.5;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.stroke(new Path2D(CHARACTER_FRAME_PATH));
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.fillStyle="#fff";
+  ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";
+  ctx.lineWidth=6;
+  ctx.arc(c.x,c.y,30,0,Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle="#342f3a";
+  ctx.font="900 21px Arial";
+  ctx.textAlign="center";
+  ctx.textBaseline="alphabetic";
   ctx.fillText(c.id,c.x,c.y+7);
-  ctx.font="700 19px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
+  // Production reference intentionally contains only the character code, not its name.
+  ctx.restore();
+}
+
+// Export the same four HUD safe areas visible on the in-editor Scene.
+// Unlike the Editor UI toggle, these are mandatory for production Scene references.
+function drawSceneHudPng(ctx){
+  const W=1080,H=1610;
+  const zones=[
+    {kind:"lives",x:W*.058,y:H*.055,w:W*.18,h:H*.05},
+    {kind:"home",x:W*(1-.075-.205),y:H*.043,w:W*.205,h:H*.063},
+    {kind:"tools",x:W*.027,y:H*(1-.032-.08),w:W*.245,h:H*.08},
+    {kind:"ads",x:W*(1-.052-.095),y:H*(1-.031-.09),w:W*.095,h:H*.09}
+  ];
+  const ep=data.level.id?String(data.level.id).replace(/^L/,""):"01";
+  ctx.save();
+  for(const z of zones){
+    ctx.save();
+    ctx.shadowColor="rgba(52,43,61,0.15)";
+    ctx.shadowBlur=12;
+    ctx.shadowOffsetY=4;
+    canvasRoundedPath(ctx,z.x,z.y,z.w,z.h,25);
+    ctx.fillStyle="rgba(255,255,255,0.92)";
+    ctx.fill();
+    ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+    ctx.lineWidth=3;
+    ctx.strokeStyle="#9567ef";
+    ctx.stroke();
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillStyle="#624b9f";
+    ctx.font="900 25px Arial, sans-serif";
+    if(z.kind==="lives"){
+      // Use actual UI heart icons; color emoji renders in browser Canvas.
+      ctx.font='29px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+      ctx.fillText("❤️ ❤️",z.x+z.w/2,z.y+z.h/2+1);
+    }else if(z.kind==="home"){
+      ctx.fillText(`EP.${ep}  ⌂`,z.x+z.w/2,z.y+z.h/2+1);
+    }else if(z.kind==="tools"){
+      ctx.font='29px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+      ctx.fillText("📝  🖼️",z.x+z.w/2,z.y+z.h/2+1);
+    }else{
+      ctx.font="900 26px Arial, sans-serif";
+      ctx.fillText("ADS",z.x+z.w/2,z.y+z.h/2+1);
+    }
+    ctx.restore();
+  }
   ctx.restore();
 }
 async function buildSceneCanvas(state){
@@ -4172,6 +4255,8 @@ async function buildSceneCanvas(state){
     }
   }
   sortedCharacters().filter(c=>state==="SOLVED"||c.type==="F").forEach(c=>drawSceneCharPng(ctx,c));
+  // Draw HUD last, above scene objects and characters, as it appears in the game.
+  drawSceneHudPng(ctx);
   return canvas;
 }
 function canvasAsPngBytes(canvas){
@@ -4193,7 +4278,7 @@ async function exportScenePng(){
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);
     a.download=`${base}_SCENE_START_SOLVED.zip`;a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast("Đã xuất ZIP · Scene START + SOLVED");
+    toast("Đã xuất Scene PNG · START / SOLVED luôn có KHUNG NV + UI");
   }catch(e){console.error(e);toast("Không xuất được Scene PNG · kiểm tra ảnh/layer")}
 }
 
@@ -4363,6 +4448,11 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#endingOverlay").c
 ["saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
 play=loadPlayProgress();
 render();
+if(typeof ResizeObserver!=="undefined"){
+  const charFrameStageObserver=new ResizeObserver(syncCharacterFrameScale);
+  charFrameStageObserver.observe($("#stage"));
+}else window.addEventListener("resize",syncCharacterFrameScale);
+
 })();
 </script>
 </body>
